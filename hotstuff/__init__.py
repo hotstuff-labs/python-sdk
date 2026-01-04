@@ -5,9 +5,9 @@ A Python SDK for interacting with Hotstuff Labs decentralized exchange.
 
 __version__ = "0.0.1-beta.1"
 
-from hotstuff_sdk.transports import HttpTransport, WebSocketTransport
-from hotstuff_sdk.clients import InfoClient, ExchangeClient, SubscriptionClient
-from hotstuff_sdk.types import (
+from hotstuff.transports import HttpTransport, WebSocketTransport
+from hotstuff.clients import InfoClient, ExchangeClient, SubscriptionClient
+from hotstuff.types import (
     HttpTransportOptions,
     WebSocketTransportOptions,
     UnitOrder,
@@ -18,7 +18,7 @@ from hotstuff_sdk.types import (
     CancelAllParams,
     AddAgentParams,
 )
-from hotstuff_sdk.utils import NonceManager, sign_action, EXCHANGE_OP_CODES
+from hotstuff.utils import NonceManager, sign_action, EXCHANGE_OP_CODES
 
 __all__ = [
     # Version

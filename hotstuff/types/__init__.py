@@ -1,5 +1,5 @@
 """Type definitions package."""
-from hotstuff_sdk.types.transports import (
+from hotstuff.types.transports import (
     HttpTransportOptions,
     WebSocketTransportOptions,
     JSONRPCMessage,
@@ -12,13 +12,13 @@ from hotstuff_sdk.types.transports import (
     UnsubscribeResult,
     PongResult,
 )
-from hotstuff_sdk.types.clients import (
+from hotstuff.types.clients import (
     InfoClientParameters,
     ExchangeClientParameters,
     SubscriptionClientParameters,
     ActionRequest,
 )
-from hotstuff_sdk.types.exchange import (
+from hotstuff.types.exchange import (
     UnitOrder,
     BrokerConfig,
     PlaceOrderParams,

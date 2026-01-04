@@ -1,6 +1,6 @@
 """Example: WebSocket subscriptions."""
 import asyncio
-from hotstuff_sdk import (
+from hotstuff import (
     WebSocketTransport,
     SubscriptionClient,
     WebSocketTransportOptions,

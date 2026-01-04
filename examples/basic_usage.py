@@ -1,6 +1,6 @@
 """Example: Basic usage of the Hotstuff Python SDK."""
 import asyncio
-from hotstuff_sdk import (
+from hotstuff import (
     HttpTransport,
     InfoClient,
     HttpTransportOptions,

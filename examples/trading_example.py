@@ -2,7 +2,7 @@
 import asyncio
 import time
 import os
-from hotstuff_sdk import (
+from hotstuff import (
     HttpTransport,
     ExchangeClient,
     InfoClient,

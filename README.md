@@ -23,15 +23,28 @@
 
 ## Installation
 
+### Using pip
+
 ```bash
 pip install hotstuff-python-sdk
 ```
 
-Or install from source:
+### Using Poetry
+
+```bash
+poetry add hotstuff-python-sdk
+```
+
+### Install from source
 
 ```bash
 git clone https://github.com/hotstuff-labs/python-sdk.git
 cd python-sdk
+
+# Using Poetry (recommended)
+poetry install
+
+# Or using pip
 pip install -e .
 ```
 
@@ -39,7 +52,7 @@ pip install -e .
 
 ```python
 import asyncio
-from hotstuff_sdk import (
+from hotstuff import (
     HttpTransport,
     WebSocketTransport,
     InfoClient,
@@ -98,7 +111,7 @@ Query market data, account information, vault details, and blockchain explorer d
 #### Creating an InfoClient
 
 ```python
-from hotstuff_sdk import HttpTransport, InfoClient, HttpTransportOptions
+from hotstuff import HttpTransport, InfoClient, HttpTransportOptions
 
 async def setup():
     transport = HttpTransport(HttpTransportOptions(is_testnet=True))
@@ -243,7 +256,7 @@ Execute signed trading actions and account management operations.
 #### Creating an ExchangeClient
 
 ```python
-from hotstuff_sdk import HttpTransport, ExchangeClient, HttpTransportOptions
+from hotstuff import HttpTransport, ExchangeClient, HttpTransportOptions
 from eth_account import Account
 
 async def setup():
@@ -334,7 +347,7 @@ Subscribe to real-time data streams via WebSocket.
 #### Creating a SubscriptionClient
 
 ```python
-from hotstuff_sdk import WebSocketTransport, SubscriptionClient, WebSocketTransportOptions
+from hotstuff import WebSocketTransport, SubscriptionClient, WebSocketTransportOptions
 
 async def setup():
     transport = WebSocketTransport(WebSocketTransportOptions(is_testnet=True))
@@ -471,7 +484,7 @@ HTTP transport for making API requests to the Hotstuff Labs API.
 #### Configuration
 
 ```python
-from hotstuff_sdk import HttpTransport, HttpTransportOptions
+from hotstuff import HttpTransport, HttpTransportOptions
 
 transport = HttpTransport(
     HttpTransportOptions(
@@ -515,7 +528,7 @@ WebSocket transport for real-time subscriptions using JSON-RPC 2.0.
 #### Configuration
 
 ```python
-from hotstuff_sdk import WebSocketTransport, WebSocketTransportOptions
+from hotstuff import WebSocketTransport, WebSocketTransportOptions
 
 transport = WebSocketTransport(
     WebSocketTransportOptions(
@@ -679,7 +692,7 @@ except Exception as e:
 ```python
 import asyncio
 import time
-from hotstuff_sdk import (
+from hotstuff import (
     HttpTransport,
     WebSocketTransport,
     InfoClient,

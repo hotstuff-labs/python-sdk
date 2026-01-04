@@ -3,8 +3,8 @@ import json
 from typing import Optional, Any, Dict, Callable, Awaitable
 import aiohttp
 
-from hotstuff_sdk.types import HttpTransportOptions
-from hotstuff_sdk.utils import ENDPOINTS_URLS
+from hotstuff.types import HttpTransportOptions
+from hotstuff.utils import ENDPOINTS_URLS
 
 
 class HttpTransport:

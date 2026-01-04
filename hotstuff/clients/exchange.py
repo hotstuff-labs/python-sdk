@@ -2,8 +2,8 @@
 from typing import Optional, Any, Dict, Callable, Awaitable
 from eth_account import Account
 
-from hotstuff_sdk.utils import sign_action, EXCHANGE_OP_CODES, NonceManager
-from hotstuff_sdk.types import (
+from hotstuff.utils import sign_action, EXCHANGE_OP_CODES, NonceManager
+from hotstuff.types import (
     PlaceOrderParams,
     CancelByOidParams,
     CancelByCloidParams,

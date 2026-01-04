@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any, Callable, List
 import websockets
 from websockets.client import WebSocketClientProtocol
 
-from hotstuff_sdk.types import (
+from hotstuff.types import (
     WebSocketTransportOptions,
     JSONRPCMessage,
     JSONRPCResponse,
@@ -17,7 +17,7 @@ from hotstuff_sdk.types import (
     UnsubscribeResult,
     PongResult,
 )
-from hotstuff_sdk.utils import ENDPOINTS_URLS
+from hotstuff.utils import ENDPOINTS_URLS
 
 
 class WebSocketTransport:

@@ -1,7 +1,0 @@
-aiohttp>=3.9.0
-websockets>=12.0
-eth-account>=0.11.0
-eth-utils>=4.0.0
-msgpack>=1.0.0
-web3>=6.0.0
-
