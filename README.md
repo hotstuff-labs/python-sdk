@@ -759,19 +759,3 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
----
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Support
-
-For issues and questions:
-
-- GitHub Issues: https://github.com/hotstuff-labs/py-sdk/issues
-- Documentation: https://docs.hotstuff.trade/
