@@ -34,7 +34,7 @@ async def main():
         
         print("Subscribing to BTC-PERP trades...")
         trade_sub = await subscriptions.trade(
-            {"instrumentId": "BTC-PERP"},
+            {"symbol": "BTC-PERP"},
             handle_trade
         )
         

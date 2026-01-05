@@ -245,11 +245,12 @@ class WebSocketTransport:
     
     async def _subscribe_to_channels(self, params: dict) -> SubscribeResult:
         """Subscribe to channels."""
+        self.message_id_counter += 1
         message = {
             "jsonrpc": "2.0",
             "method": WSMethod.SUBSCRIBE,
             "params": params,
-            "id": None,  # Will be assigned
+            "id": str(self.message_id_counter),
         }
         
         result = await self._send_jsonrpc_message(message)
@@ -257,11 +258,12 @@ class WebSocketTransport:
     
     async def _unsubscribe_from_channels(self, channels: List[str]) -> UnsubscribeResult:
         """Unsubscribe from channels."""
+        self.message_id_counter += 1
         message = {
             "jsonrpc": "2.0",
             "method": WSMethod.UNSUBSCRIBE,
             "params": channels,
-            "id": None,
+            "id": str(self.message_id_counter),
         }
         
         result = await self._send_jsonrpc_message(message)
@@ -299,10 +301,11 @@ class WebSocketTransport:
     
     async def ping(self) -> PongResult:
         """Send ping to server."""
+        self.message_id_counter += 1
         message = {
             "jsonrpc": "2.0",
             "method": WSMethod.PING,
-            "id": None,
+            "id": str(self.message_id_counter),
         }
         
         result = await self._send_jsonrpc_message(message)

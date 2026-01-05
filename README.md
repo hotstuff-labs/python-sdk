@@ -381,13 +381,13 @@ bbo_sub = await subscriptions.bbo(
 
 # Subscribe to orderbook updates
 orderbook_sub = await subscriptions.orderbook(
-    {"instrumentId": "BTC-PERP"},
+    {"symbol": "BTC-PERP"},
     lambda data: print(f"Orderbook: {data.data}")
 )
 
 # Subscribe to trades
 trade_sub = await subscriptions.trade(
-    {"instrumentId": "BTC-PERP"},
+    {"symbol": "BTC-PERP"},
     lambda data: print(f"Trade: {data.data}")
 )
 
@@ -758,4 +758,3 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
-

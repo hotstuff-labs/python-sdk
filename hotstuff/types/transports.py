@@ -83,6 +83,12 @@ class SubscribeResult:
     status: str
     channels: Optional[list] = None
     error: Optional[str] = None
+    
+    def __init__(self, status: str, channels: Optional[list] = None, error: Optional[str] = None, **kwargs):
+        """Initialize SubscribeResult, ignoring extra fields like 'id'."""
+        self.status = status
+        self.channels = channels
+        self.error = error
 
 
 @dataclass
@@ -90,6 +96,11 @@ class UnsubscribeResult:
     """Result of unsubscription."""
     status: str
     channels: Optional[list] = None
+    
+    def __init__(self, status: str, channels: Optional[list] = None, **kwargs):
+        """Initialize UnsubscribeResult, ignoring extra fields like 'id'."""
+        self.status = status
+        self.channels = channels
 
 
 @dataclass

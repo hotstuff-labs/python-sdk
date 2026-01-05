@@ -76,7 +76,7 @@ class SubscriptionClient:
         Subscribe to orderbook updates.
         
         Args:
-            params: Subscription parameters (instrumentId)
+            params: Subscription parameters (symbol)
             listener: Callback function for updates
             
         Returns:
@@ -93,7 +93,7 @@ class SubscriptionClient:
         Subscribe to trades.
         
         Args:
-            params: Subscription parameters (instrumentId)
+            params: Subscription parameters (symbol)
             listener: Callback function for updates
             
         Returns:
