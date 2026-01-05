@@ -6,11 +6,11 @@ from eth_utils import keccak
 
 
 EXCHANGE_OP_CODES = {
-    "placeOrder": 1,
-    "cancelByOid": 2,
-    "cancelByCloid": 3,
-    "cancelAll": 4,
-    "addAgent": 5,
+    "placeOrder": 1301,
+    "cancelByOid": 1302,
+    "cancelByCloid": 1312,
+    "cancelAll": 1311,
+    "addAgent": 1201,
 }
 
 
