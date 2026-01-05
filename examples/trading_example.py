@@ -36,7 +36,9 @@ async def main():
         # Get current ticker
         print("Fetching current price...")
         ticker = await info.ticker({"symbol": "BTC-PERP"})
-        current_price = ticker.get("last", 50000)
+        # ticker returns a list with one element
+        ticker_data = ticker[0] if ticker else {}
+        current_price = float(ticker_data.get("last_price", 50000))
         print(f"Current BTC-PERP price: {current_price}\n")
         
         # Place a limit order
@@ -46,14 +48,22 @@ async def main():
                 "instrumentId": 1,
                 "side": "b",  # buy
                 "positionSide": "LONG",
-                "price": str(current_price * 0.95),  # 5% below market
+                "price": '100',  # 5% below market
                 "size": "0.01",
                 "tif": "GTC",
                 "ro": False,
-                "po": True,  # post-only
-                "cloid": f"example-order-{int(time.time())}",
+                "po": False,  # post-only
+                "cloid": 'test-order-1',
+                "triggerPx": '',
+                "isMarket": False,
+                "tpsl": '',
+                "grouping": '',
             }],
-            "expiresAfter": int(time.time()) + 3600,  # 1 hour
+            "brokerConfig": {
+                "broker": '',
+                "fee": '0.001',
+            },
+            "expiresAfter": int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
         })
         print(f"Order result: {order_result}\n")
         
@@ -65,7 +75,7 @@ async def main():
         # Cancel all orders
         print("Cancelling all orders...")
         cancel_result = await exchange.cancel_all({
-            "expiresAfter": int(time.time()) + 3600,
+            "expiresAfter": int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
         })
         print(f"Cancel result: {cancel_result}\n")
         
