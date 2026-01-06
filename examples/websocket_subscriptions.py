@@ -1,11 +1,16 @@
 """Example: WebSocket subscriptions."""
 import asyncio
+import importlib
 from hotstuff import (
     WebSocketTransport,
     SubscriptionClient,
     WebSocketTransportOptions,
 )
 
+subscription_methods = importlib.import_module("hotstuff.methods.subscription.global")
+
+TickerSubscriptionParams = subscription_methods.TickerSubscriptionParams
+TradeSubscriptionParams = subscription_methods.TradeSubscriptionParams
 
 async def main():
     """Main example function."""
@@ -24,7 +29,7 @@ async def main():
         
         print("Subscribing to BTC-PERP ticker...")
         ticker_sub = await subscriptions.ticker(
-            {"symbol": "BTC-PERP"},
+            TickerSubscriptionParams(symbol="BTC-PERP"),
             handle_ticker
         )
         
@@ -34,7 +39,7 @@ async def main():
         
         print("Subscribing to BTC-PERP trades...")
         trade_sub = await subscriptions.trade(
-            {"symbol": "BTC-PERP"},
+            TradeSubscriptionParams(instrument_id="BTC-PERP"),
             handle_trade
         )
         
@@ -54,4 +59,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

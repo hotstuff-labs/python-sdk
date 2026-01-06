@@ -6,19 +6,23 @@ A Python SDK for interacting with Hotstuff Labs decentralized exchange.
 __version__ = "0.0.1-beta.1"
 
 from hotstuff.transports import HttpTransport, WebSocketTransport
-from hotstuff.clients import InfoClient, ExchangeClient, SubscriptionClient
+from hotstuff.apis import InfoClient, ExchangeClient, SubscriptionClient
 from hotstuff.types import (
     HttpTransportOptions,
     WebSocketTransportOptions,
+)
+from hotstuff.utils import NonceManager, sign_action, EXCHANGE_OP_CODES
+
+# Export method types for convenience
+from hotstuff.methods.exchange.trading import (
     UnitOrder,
     BrokerConfig,
     PlaceOrderParams,
     CancelByOidParams,
     CancelByCloidParams,
     CancelAllParams,
-    AddAgentParams,
 )
-from hotstuff.utils import NonceManager, sign_action, EXCHANGE_OP_CODES
+from hotstuff.methods.exchange.account import AddAgentParams
 
 __all__ = [
     # Version
@@ -30,9 +34,10 @@ __all__ = [
     "InfoClient",
     "ExchangeClient",
     "SubscriptionClient",
-    # Types
+    # Transport Types
     "HttpTransportOptions",
     "WebSocketTransportOptions",
+    # Exchange Method Types (for backward compatibility)
     "UnitOrder",
     "BrokerConfig",
     "PlaceOrderParams",

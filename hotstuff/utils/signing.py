@@ -3,15 +3,7 @@ import msgpack
 from eth_account import Account
 from eth_account.messages import encode_structured_data
 from eth_utils import keccak
-
-
-EXCHANGE_OP_CODES = {
-    "placeOrder": 1301,
-    "cancelByOid": 1302,
-    "cancelByCloid": 1312,
-    "cancelAll": 1311,
-    "addAgent": 1201,
-}
+from hotstuff.methods.exchange.op_codes import EXCHANGE_OP_CODES
 
 
 async def sign_action(
