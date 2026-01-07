@@ -101,7 +101,7 @@ class PositionsParams(BaseModel):
 
 class PositionsResponse(BaseModel):
     """Positions response."""
-    pass  # TODO: Define structure when API response is known
+    pass
 
 
 # Account Summary Method
@@ -139,7 +139,7 @@ class ReferralSummaryParams(BaseModel):
 
 class ReferralSummaryResponse(BaseModel):
     """Referral summary response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # User Fee Info Method
@@ -156,7 +156,7 @@ class UserFeeInfoParams(BaseModel):
 
 class UserFeeInfoResponse(BaseModel):
     """User fee info response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Account History Method
@@ -173,7 +173,7 @@ class AccountHistoryParams(BaseModel):
 
 class AccountHistoryResponse(BaseModel):
     """Account history response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Order History Method
@@ -194,7 +194,7 @@ class OrderHistoryParams(BaseModel):
 
 class OrderHistoryResponse(BaseModel):
     """Order history response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Trade History Method
@@ -215,7 +215,7 @@ class TradeHistoryParams(BaseModel):
 
 class TradeHistoryResponse(BaseModel):
     """Trade history response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Funding History Method
@@ -232,7 +232,7 @@ class FundingHistoryParams(BaseModel):
 
 class FundingHistoryResponse(BaseModel):
     """Funding history response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Transfer History Method
@@ -249,7 +249,7 @@ class TransferHistoryParams(BaseModel):
 
 class TransferHistoryResponse(BaseModel):
     """Transfer history response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Instrument Leverage Method
@@ -267,7 +267,7 @@ class InstrumentLeverageParams(BaseModel):
 
 class InstrumentLeverageResponse(BaseModel):
     """Instrument leverage response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Referral Info Method
@@ -284,7 +284,7 @@ class ReferralInfoParams(BaseModel):
 
 class ReferralInfoResponse(BaseModel):
     """Referral info response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Sub Accounts List Method
@@ -301,7 +301,7 @@ class SubAccountsListParams(BaseModel):
 
 class SubAccountsListResponse(BaseModel):
     """Sub accounts list response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Agents Method
@@ -363,7 +363,7 @@ class UserBalanceInfoParams(BaseModel):
 
 class UserBalanceInfoResponse(BaseModel):
     """User balance info response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Account Info Method
@@ -384,4 +384,4 @@ class AccountInfoParams(BaseModel):
 
 class AccountInfoResponse(BaseModel):
     """Account info response."""
-    pass  # TODO: Define structure when API response is known
+    pass 

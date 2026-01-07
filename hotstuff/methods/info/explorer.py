@@ -12,7 +12,7 @@ class BlocksParams(BaseModel):
 
 class BlocksResponse(BaseModel):
     """Blocks response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Block Details Method
@@ -24,7 +24,7 @@ class BlockDetailsParams(BaseModel):
 
 class BlockDetailsResponse(BaseModel):
     """Block details response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Transactions Method
@@ -43,7 +43,7 @@ class TransactionsParams(BaseModel):
 
 class TransactionsResponse(BaseModel):
     """Transactions response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Transaction Details Method
@@ -54,4 +54,4 @@ class TransactionDetailsParams(BaseModel):
 
 class TransactionDetailsResponse(BaseModel):
     """Transaction details response."""
-    pass  # TODO: Define structure when API response is known
+    pass 

@@ -46,7 +46,7 @@ class VaultsParams(BaseModel):
 
 class VaultsResponse(BaseModel):
     """Vaults response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Sub Vaults Method
@@ -63,7 +63,7 @@ class SubVaultsParams(BaseModel):
 
 class SubVaultsResponse(BaseModel):
     """Sub vaults response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
 
 
 # Vault Balances Method
@@ -83,4 +83,4 @@ class VaultBalancesParams(BaseModel):
 
 class VaultBalancesResponse(BaseModel):
     """Vault balances response."""
-    pass  # TODO: Define structure when API response is known
+    pass 
