@@ -319,14 +319,14 @@ class AgentsParams(BaseModel):
 class Agent(BaseModel):
     """Agent information."""
     user: str = Field(..., description="User address")
-    agent: Optional[str] = Field(None, description="Agent address")
-    agent_name: Optional[str] = Field(None, alias="agentName", description="Agent name")
-    valid_until: Optional[int] = Field(None, alias="validUntil", description="Validity expiration timestamp")
-    timestamp: Optional[int] = Field(None, description="Timestamp")
+    agent_address: Optional[str] = Field(None, description="Agent address")
+    agent_name: Optional[str] = Field(None, description="Agent name")
+    created_at_block_timestamp: Optional[int] = Field(None, description="Creation timestamp")
+    valid_until_timestamp: Optional[int] = Field(None, description="Validity expiration timestamp")
     
     model_config = ConfigDict(populate_by_name=True)
     
-    @field_validator('user', 'agent', mode='before')
+    @field_validator('user', 'agent_address', mode='before')
     @classmethod
     def validate_addresses(cls, v: Optional[str]) -> Optional[str]:
         """Validate and checksum Ethereum addresses."""

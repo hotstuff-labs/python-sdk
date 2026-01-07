@@ -14,7 +14,7 @@ from eth_account import Account
 async def main():
     """Main example function."""
     # Get main account private key from environment or use default for testing
-    main_private_key = os.getenv("PRIVATE_KEY")
+    main_private_key = os.getenv("PRIVATE_KEY", "0x60d834b0a248f693fc3e5c34cb988b4657d284395815a9f24de95a84ae212a1a")
     
     # Get agent private key from environment or create a new one
     agent_private_key = os.getenv("AGENT_PRIVATE_KEY")
@@ -52,7 +52,7 @@ async def main():
         print("Adding agent...")
         agent_result = await exchange.add_agent(
             AddAgentParams(
-                agent_name="my-trading-bot",
+                agent_name="my-agent",
                 agent=agent_account.address,
                 for_account="",
                 agent_private_key=agent_private_key,
@@ -73,10 +73,10 @@ async def main():
         )
         print(f"Found {len(all_agents)} agent(s) for account:")
         for agent in all_agents:
-            agent_addr = agent.agent or 'N/A'
+            agent_addr = agent.agent_address or 'N/A'
             agent_name = agent.agent_name or 'N/A'
-            valid_until = agent.valid_until or 'N/A'
-            timestamp = agent.timestamp or 'N/A'
+            valid_until = agent.valid_until_timestamp or 'N/A'
+            timestamp = agent.created_at_block_timestamp or 'N/A'
             print(f"  - Agent: {agent_addr}, Name: {agent_name}, Valid until: {valid_until}, Timestamp: {timestamp}")
         print()
         
