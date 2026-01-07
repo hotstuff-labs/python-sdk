@@ -13,11 +13,24 @@ from eth_account import Account
 
 async def main():
     """Main example function."""
+    # Get main account private key from environment or use default for testing
     main_private_key = os.getenv("PRIVATE_KEY")
-    agent_private_key = Account.create().key.hex()
-
-    if not main_private_key or not agent_private_key:
-        print("ERROR: PRIVATE_KEY and AGENT_PRIVATE_KEY environment variables must be set")
+    
+    # Get agent private key from environment or create a new one
+    agent_private_key = os.getenv("AGENT_PRIVATE_KEY")
+    
+    if not agent_private_key:
+        # Create a new agent account if not provided
+        agent_private_key = Account.create().key.hex()
+        print("Note: Created a new agent account. Set AGENT_PRIVATE_KEY env var to use a specific agent.")
+    
+    # Validate that we have valid private keys
+    if not main_private_key or not main_private_key.strip():
+        print("ERROR: PRIVATE_KEY environment variable must be set or use the default")
+        return
+    
+    if not agent_private_key or not agent_private_key.strip():
+        print("ERROR: AGENT_PRIVATE_KEY is invalid")
         return
     
     # Create HTTP transport for testnet
@@ -39,12 +52,12 @@ async def main():
         print("Adding agent...")
         agent_result = await exchange.add_agent(
             AddAgentParams(
-                agent_name="my-trading-bot",  # Name for the agent
-                agent=agent_account.address,  # Agent's Ethereum address
+                agent_name="my-trading-bot",
+                agent=agent_account.address,
                 for_account="",
-                agent_private_key=agent_private_key,  # Agent's private key (for signing)
-                signer=main_account.address,  # Signer address (usually the main account)
-                valid_until=int(time.time() * 1000) + 3600000,  # Valid for 1 hour (in milliseconds)
+                agent_private_key=agent_private_key,
+                signer=main_account.address,
+                valid_until=int(time.time() * 1000) + 3600000,
             )
         )
         
@@ -58,7 +71,14 @@ async def main():
         all_agents = await info.agents(
             AgentsParams(user=main_account.address)
         )
-        print(f"All agents for account: {all_agents}\n")
+        print(f"Found {len(all_agents)} agent(s) for account:")
+        for agent in all_agents:
+            agent_addr = agent.agent or 'N/A'
+            agent_name = agent.agent_name or 'N/A'
+            valid_until = agent.valid_until or 'N/A'
+            timestamp = agent.timestamp or 'N/A'
+            print(f"  - Agent: {agent_addr}, Name: {agent_name}, Valid until: {valid_until}, Timestamp: {timestamp}")
+        print()
         
     except Exception as e:
         print(f"Error: {e}")

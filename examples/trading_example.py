@@ -27,7 +27,7 @@ async def main():
     # Get private key from environment
     private_key = os.getenv("PRIVATE_KEY")
     if not private_key:
-        print("ERROR: PRIVATE_KEY environment variable not set")
+        print("ERROR: PRIVATE_KEY environment variable must be set")
         return
     
     # Create HTTP transport for testnet

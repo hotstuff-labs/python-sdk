@@ -1,6 +1,6 @@
 """Account info method types."""
 from typing import List, Literal, Optional, Annotated
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict, field_validator, RootModel
 from eth_utils import is_address, to_checksum_address
 
 
@@ -316,9 +316,36 @@ class AgentsParams(BaseModel):
         return validate_ethereum_address(v)
 
 
-class AgentsResponse(BaseModel):
-    """Agents response."""
-    pass  # TODO: Define structure when API response is known
+class Agent(BaseModel):
+    """Agent information."""
+    user: str = Field(..., description="User address")
+    agent: Optional[str] = Field(None, description="Agent address")
+    agent_name: Optional[str] = Field(None, alias="agentName", description="Agent name")
+    valid_until: Optional[int] = Field(None, alias="validUntil", description="Validity expiration timestamp")
+    timestamp: Optional[int] = Field(None, description="Timestamp")
+    
+    model_config = ConfigDict(populate_by_name=True)
+    
+    @field_validator('user', 'agent', mode='before')
+    @classmethod
+    def validate_addresses(cls, v: Optional[str]) -> Optional[str]:
+        """Validate and checksum Ethereum addresses."""
+        if v is None or v == "":
+            return v
+        return validate_ethereum_address(v)
+
+
+class AgentsResponse(RootModel[List[Agent]]):
+    """Agents response - list of agents."""
+    
+    def __iter__(self):
+        return iter(self.root)
+    
+    def __getitem__(self, item):
+        return self.root[item]
+    
+    def __len__(self):
+        return len(self.root)
 
 
 # User Balance Info Method

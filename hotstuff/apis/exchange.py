@@ -63,6 +63,7 @@ class ExchangeClient:
                 "nonce": nonce,
             },
             tx_type=EXCHANGE_OP_CODES["addAgent"],
+            is_testnet=self.transport.is_testnet,
         )
         
         # Prepare params for API
@@ -208,7 +209,7 @@ class ExchangeClient:
             wallet=self.wallet,
             action=params,
             tx_type=EXCHANGE_OP_CODES[action],
-            is_testnet=True,
+            is_testnet=self.transport.is_testnet,
         )
         
         if execute:
