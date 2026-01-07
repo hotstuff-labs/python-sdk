@@ -104,6 +104,8 @@ class InfoClient:
         """Get open orders."""
         request = {"method": "openOrders", "params": params.model_dump()}
         response = await self.transport.request("info", request, signal)
+        if isinstance(response, dict) and "data" in response:
+            response = {"orders": response["data"]}
         return AM.OpenOrdersResponse.model_validate(response)
     
     async def positions(
@@ -208,6 +210,8 @@ class InfoClient:
         """Get agents."""
         request = {"method": "allAgents", "params": params.model_dump()}
         response = await self.transport.request("info", request, signal)
+        if isinstance(response, list):
+            return [AM.Agent.model_validate(item) for item in response]
         return AM.AgentsResponse.model_validate(response)
     
     async def user_balance(

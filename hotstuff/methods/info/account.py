@@ -74,16 +74,8 @@ class OpenOrder(BaseModel):
 
 
 class OpenOrdersResponse(BaseModel):
-    """Open orders response with pagination."""
-    data: List[OpenOrder] = Field(..., description="List of open orders")
-    page: int = Field(..., description="Current page number")
-    limit: int = Field(..., description="Number of orders per page")
-    totalCount: int = Field(..., alias="totalCount", description="Total number of orders")
-    totalPages: int = Field(..., alias="totalPages", description="Total number of pages")
-    hasNext: bool = Field(..., alias="hasNext", description="Whether there is a next page")
-    hasPrev: bool = Field(..., alias="hasPrev", description="Whether there is a previous page")
-    
-    model_config = ConfigDict(populate_by_name=True)
+    """Open orders response."""
+    orders: List[OpenOrder] = Field(..., description="List of open orders")
 
 
 # Positions Method
@@ -335,17 +327,9 @@ class Agent(BaseModel):
         return validate_ethereum_address(v)
 
 
-class AgentsResponse(RootModel[List[Agent]]):
-    """Agents response - list of agents."""
-    
-    def __iter__(self):
-        return iter(self.root)
-    
-    def __getitem__(self, item):
-        return self.root[item]
-    
-    def __len__(self):
-        return len(self.root)
+class AgentsResponse(BaseModel):
+    """Agents response."""
+    pass
 
 
 # User Balance Info Method
