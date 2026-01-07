@@ -14,7 +14,7 @@ from eth_account import Account
 async def main():
     """Main example function."""
     # Get main account private key from environment or use default for testing
-    main_private_key = os.getenv("PRIVATE_KEY", "0x60d834b0a248f693fc3e5c34cb988b4657d284395815a9f24de95a84ae212a1a")
+    main_private_key = os.getenv("PRIVATE_KEY")
     
     # Get agent private key from environment or create a new one
     agent_private_key = os.getenv("AGENT_PRIVATE_KEY")

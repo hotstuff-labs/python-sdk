@@ -1,5 +1,5 @@
 """Exchange API client for trading operations."""
-from typing import Optional, Any, Callable, Awaitable
+from typing import Optional, Any, Dict, Callable, Awaitable
 from eth_account import Account
 
 from hotstuff.utils import sign_action, NonceManager
@@ -38,7 +38,7 @@ class ExchangeClient:
         params: AM.AddAgentParams,
         execute: bool = True,
         signal: Optional[Any] = None
-    ) -> Any:
+    ) -> Dict[str, Any]:
         """
         Add an agent.
         
@@ -88,7 +88,7 @@ class ExchangeClient:
         self,
         params: TM.PlaceOrderParams,
         signal: Optional[Any] = None
-    ) -> Any:
+    ) -> Dict[str, Any]:
         """
         Place order(s).
         
@@ -119,7 +119,7 @@ class ExchangeClient:
         self,
         params: TM.CancelByOidParams,
         signal: Optional[Any] = None
-    ) -> Any:
+    ) -> Dict[str, Any]:
         """
         Cancel order by order ID.
         
@@ -140,7 +140,7 @@ class ExchangeClient:
         self,
         params: TM.CancelByCloidParams,
         signal: Optional[Any] = None
-    ) -> Any:
+    ) -> Dict[str, Any]:
         """
         Cancel order by client order ID.
         
@@ -161,7 +161,7 @@ class ExchangeClient:
         self,
         params: TM.CancelAllParams,
         signal: Optional[Any] = None
-    ) -> Any:
+    ) -> Dict[str, Any]:
         """
         Cancel all orders.
         
@@ -182,10 +182,10 @@ class ExchangeClient:
     
     async def _execute_action(
         self,
-        request: dict,
+        request: Dict[str, Any],
         signal: Optional[Any] = None,
         execute: bool = True
-    ) -> Any:
+    ) -> Dict[str, Any]:
         """
         Execute an action.
         
