@@ -209,7 +209,7 @@ class ExchangeClient:
             wallet=self.wallet,
             action=params,
             tx_type=EXCHANGE_OP_CODES[action],
-            is_testnet=self.transport.is_testnet,
+            is_testnet=True,
         )
         
         if execute:
