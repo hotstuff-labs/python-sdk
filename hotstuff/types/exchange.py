@@ -32,7 +32,7 @@ class BrokerConfig:
 class PlaceOrderParams:
     """Parameters for placing an order."""
     orders: List[UnitOrder]
-    expires_after: int
+    expiresAfter: int
     broker_config: Optional[BrokerConfig] = None
     nonce: Optional[int] = None
 
@@ -48,7 +48,7 @@ class UnitCancelByOrderId:
 class CancelByOidParams:
     """Parameters for cancelling by order ID."""
     cancels: List[UnitCancelByOrderId]
-    expires_after: int
+    expiresAfter: int
     nonce: Optional[int] = None
 
 
@@ -63,14 +63,14 @@ class UnitCancelByClOrderId:
 class CancelByCloidParams:
     """Parameters for cancelling by client order ID."""
     cancels: List[UnitCancelByClOrderId]
-    expires_after: int
+    expiresAfter: int
     nonce: Optional[int] = None
 
 
 @dataclass
 class CancelAllParams:
     """Parameters for cancelling all orders."""
-    expires_after: int
+    expiresAfter: int
     nonce: Optional[int] = None
 
 

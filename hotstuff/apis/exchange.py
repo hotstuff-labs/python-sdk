@@ -2,14 +2,12 @@
 from typing import Optional, Any, Dict, Callable, Awaitable
 from eth_account import Account
 
-from hotstuff.utils import sign_action, EXCHANGE_OP_CODES, NonceManager
-from hotstuff.types import (
-    PlaceOrderParams,
-    CancelByOidParams,
-    CancelByCloidParams,
-    CancelAllParams,
-    AddAgentParams,
+from hotstuff.utils import sign_action, NonceManager
+from hotstuff.methods.exchange import (
+    trading as TM,
+    account as AM,
 )
+from hotstuff.methods.exchange.op_codes import EXCHANGE_OP_CODES
 
 
 class ExchangeClient:
@@ -37,7 +35,7 @@ class ExchangeClient:
     
     async def add_agent(
         self,
-        params: Dict[str, Any],
+        params: AM.AddAgentParams,
         execute: bool = True,
         signal: Optional[Any] = None
     ) -> Dict[str, Any]:
@@ -55,29 +53,31 @@ class ExchangeClient:
         nonce = await self.nonce()
         
         # Create agent account from private key
-        agent_account = Account.from_key(params["agent_private_key"])
+        agent_account = Account.from_key(params.agent_private_key)
         
         # Sign with agent account
         agent_signature = await sign_action(
             wallet=agent_account,
             action={
-                "signer": params["signer"],
+                "signer": params.signer,
                 "nonce": nonce,
             },
             tx_type=EXCHANGE_OP_CODES["addAgent"],
+            is_testnet=self.transport.is_testnet,
         )
         
-        params = {
-            "agentName": params["agent_name"],
-            "agent": params["agent"],
-            "forAccount": params["for_account"],
+        # Prepare params for API
+        params_dict = {
+            "agentName": params.agent_name,
+            "agent": params.agent,
+            "forAccount": params.for_account if params.for_account else "",
             "signature": agent_signature,
-            "validUntil": params["valid_until"],
+            "validUntil": params.valid_until,
             "nonce": nonce,
         }
         
         return await self._execute_action(
-            {"action": "addAgent", "params": params},
+            {"action": "addAgent", "params": params_dict},
             signal,
             execute
         )
@@ -86,7 +86,7 @@ class ExchangeClient:
     
     async def place_order(
         self,
-        params: Dict[str, Any],
+        params: TM.PlaceOrderParams,
         signal: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
@@ -99,14 +99,25 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
+        # Convert to dict with proper aliases, ensuring nested models are converted
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        # Reorder dict to match original SDK order for consistent msgpack encoding
+        ordered_params = {
+            "orders": params_dict["orders"],
+            "brokerConfig": params_dict.get("brokerConfig"),
+            "expiresAfter": params_dict["expiresAfter"],
+        }
+        # Remove None brokerConfig if not provided
+        if ordered_params["brokerConfig"] is None:
+            ordered_params.pop("brokerConfig")
         return await self._execute_action(
-            {"action": "placeOrder", "params": params},
+            {"action": "placeOrder", "params": ordered_params},
             signal
         )
     
     async def cancel_by_oid(
         self,
-        params: Dict[str, Any],
+        params: TM.CancelByOidParams,
         signal: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
@@ -119,14 +130,15 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
         return await self._execute_action(
-            {"action": "cancelByOid", "params": params},
+            {"action": "cancelByOid", "params": params_dict},
             signal
         )
     
     async def cancel_by_cloid(
         self,
-        params: Dict[str, Any],
+        params: TM.CancelByCloidParams,
         signal: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
@@ -139,14 +151,15 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
         return await self._execute_action(
-            {"action": "cancelByCloid", "params": params},
+            {"action": "cancelByCloid", "params": params_dict},
             signal
         )
     
     async def cancel_all(
         self,
-        params: Dict[str, Any],
+        params: TM.CancelAllParams,
         signal: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
@@ -159,8 +172,9 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
         return await self._execute_action(
-            {"action": "cancelAll", "params": params},
+            {"action": "cancelAll", "params": params_dict},
             signal
         )
     
@@ -215,4 +229,3 @@ class ExchangeClient:
             return response
         
         return {"params": params, "signature": signature}
-

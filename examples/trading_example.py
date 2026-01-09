@@ -9,14 +9,25 @@ from hotstuff import (
     HttpTransportOptions,
 )
 from eth_account import Account
+import importlib
 
+global_methods = importlib.import_module("hotstuff.methods.info.global")
+TickerParams = global_methods.TickerParams
+
+from hotstuff.methods.info.account import OpenOrdersParams
+from hotstuff.methods.exchange.trading import (
+    PlaceOrderParams,
+    UnitOrder,
+    BrokerConfig,
+    CancelAllParams,
+)
 
 async def main():
     """Main example function."""
     # Get private key from environment
     private_key = os.getenv("PRIVATE_KEY")
     if not private_key:
-        print("ERROR: PRIVATE_KEY environment variable not set")
+        print("ERROR: PRIVATE_KEY environment variable must be set")
         return
     
     # Create HTTP transport for testnet
@@ -35,48 +46,54 @@ async def main():
     try:
         # Get current ticker
         print("Fetching current price...")
-        ticker = await info.ticker({"symbol": "BTC-PERP"})
+        ticker = await info.ticker(TickerParams(symbol="BTC-PERP"))
         # ticker returns a list with one element
-        ticker_data = ticker[0] if ticker else {}
-        current_price = float(ticker_data.get("last_price", 50000))
+        ticker_data = ticker[0] if ticker else None
+        current_price = float(ticker_data.last_price) if ticker_data else 50000.0
         print(f"Current BTC-PERP price: {current_price}\n")
         
         # Place a limit order
         print("Placing limit order...")
-        order_result = await exchange.place_order({
-            "orders": [{
-                "instrumentId": 1,
-                "side": "b",  # buy
-                "positionSide": "LONG",
-                "price": '100',  # 5% below market
-                "size": "0.01",
-                "tif": "GTC",
-                "ro": False,
-                "po": False,  # post-only
-                "cloid": 'test-order-1',
-                "triggerPx": '',
-                "isMarket": False,
-                "tpsl": '',
-                "grouping": '',
-            }],
-            "brokerConfig": {
-                "broker": '',
-                "fee": '0.001',
-            },
-            "expiresAfter": int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
-        })
+        order_result = await exchange.place_order(
+            PlaceOrderParams(
+                orders=[
+                    UnitOrder(
+                        instrument_id=1,
+                        side="b",  # buy
+                        position_side="LONG",
+                        price="100",  # 5% below market
+                        size="0.01",
+                        tif="GTC",
+                        ro=False,
+                        po=False,  # post-only
+                        cloid="test-order-1",
+                        trigger_px=None,
+                        is_market=False,
+                        tpsl="",
+                        grouping="",
+                    )
+                ],
+                broker_config=BrokerConfig(
+                    broker="",
+                    fee="0.001",
+                ),
+                expires_after=int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
+            )
+        )
         print(f"Order result: {order_result}\n")
         
         # Get open orders
         print("Fetching open orders...")
-        open_orders = await info.open_orders({"user": account.address})
+        open_orders = await info.open_orders(OpenOrdersParams(user=account.address))
         print(f"Open orders: {open_orders}\n")
         
         # Cancel all orders
         print("Cancelling all orders...")
-        cancel_result = await exchange.cancel_all({
-            "expiresAfter": int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
-        })
+        cancel_result = await exchange.cancel_all(
+            CancelAllParams(
+                expires_after=int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
+            )
+        )
         print(f"Cancel result: {cancel_result}\n")
         
     except Exception as e:
@@ -89,4 +106,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
