@@ -60,8 +60,8 @@ async def main():
                     UnitOrder(
                         instrument_id=1,
                         side="b",  # buy
-                        position_side="LONG",
-                        price="100",  # 5% below market
+                        position_side="BOTH",
+                        price= str(current_price),  
                         size="0.01",
                         tif="GTC",
                         ro=False,
