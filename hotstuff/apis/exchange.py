@@ -6,6 +6,8 @@ from hotstuff.utils import sign_action, NonceManager
 from hotstuff.methods.exchange import (
     trading as TM,
     account as AM,
+    collateral as CM,
+    vault as VM,
 )
 from hotstuff.methods.exchange.op_codes import EXCHANGE_OP_CODES
 
@@ -80,6 +82,132 @@ class ExchangeClient:
             {"action": "addAgent", "params": params_dict},
             signal,
             execute
+        )
+
+    async def revoke_agent(
+        self,
+        params: AM.RevokeAgentParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Revoke an agent.
+        
+        Args:
+            params: Revoke agent parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "revokeAgent", "params": params_dict},
+            signal
+        )
+
+    async def update_perp_instrument_leverage(
+        self,
+        params: AM.UpdatePerpInstrumentLeverageParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Update perp instrument leverage.
+        
+        Args:
+            params: Update leverage parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "updatePerpInstrumentLeverage", "params": params_dict},
+            signal
+        )
+
+    async def approve_broker_fee(
+        self,
+        params: AM.ApproveBrokerFeeParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Approve broker fee.
+        
+        Args:
+            params: Approve broker fee parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "approveBrokerFee", "params": params_dict},
+            signal
+        )
+
+    async def create_referral_code(
+        self,
+        params: AM.CreateReferralCodeParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a referral code.
+        
+        Args:
+            params: Create referral code parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "createReferralCode", "params": params_dict},
+            signal
+        )
+
+    async def set_referrer(
+        self,
+        params: AM.SetReferrerParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Set a referrer.
+        
+        Args:
+            params: Set referrer parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "setReferrer", "params": params_dict},
+            signal
+        )
+
+    async def claim_referral_rewards(
+        self,
+        params: AM.ClaimReferralRewardsParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Claim referral rewards.
+        
+        Args:
+            params: Claim referral rewards parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "claimReferralRewards", "params": params_dict},
+            signal
         )
     
     # Trading Actions
@@ -175,6 +303,157 @@ class ExchangeClient:
         params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
         return await self._execute_action(
             {"action": "cancelAll", "params": params_dict},
+            signal
+        )
+
+    # Collateral Transfer Methods
+
+    async def account_spot_withdraw_request(
+        self,
+        params: CM.AccountSpotWithdrawRequestParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Request spot account withdrawal.
+        
+        Args:
+            params: Spot withdraw request parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "accountSpotWithdrawRequest", "params": params_dict},
+            signal
+        )
+
+    async def account_derivative_withdraw_request(
+        self,
+        params: CM.AccountDerivativeWithdrawRequestParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Request derivative account withdrawal.
+        
+        Args:
+            params: Derivative withdraw request parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "accountDerivativeWithdrawRequest", "params": params_dict},
+            signal
+        )
+
+    async def account_spot_balance_transfer_request(
+        self,
+        params: CM.AccountSpotBalanceTransferRequestParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Request spot balance transfer.
+        
+        Args:
+            params: Spot balance transfer request parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "accountSpotBalanceTransferRequest", "params": params_dict},
+            signal
+        )
+
+    async def account_derivative_balance_transfer_request(
+        self,
+        params: CM.AccountDerivativeBalanceTransferRequestParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Request derivative balance transfer.
+        
+        Args:
+            params: Derivative balance transfer request parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "accountDerivativeBalanceTransferRequest", "params": params_dict},
+            signal
+        )
+
+    async def account_internal_balance_transfer_request(
+        self,
+        params: CM.AccountInternalBalanceTransferRequestParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Request internal balance transfer between spot and derivative accounts.
+        
+        Args:
+            params: Internal balance transfer request parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "accountInternalBalanceTransferRequest", "params": params_dict},
+            signal
+        )
+
+    # Vault Methods
+
+    async def deposit_to_vault(
+        self,
+        params: VM.DepositToVaultParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Deposit to a vault.
+        
+        Args:
+            params: Deposit to vault parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "depositToVault", "params": params_dict},
+            signal
+        )
+
+    async def redeem_from_vault(
+        self,
+        params: VM.RedeemFromVaultParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Redeem from a vault.
+        
+        Args:
+            params: Redeem from vault parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
+        return await self._execute_action(
+            {"action": "redeemFromVault", "params": params_dict},
             signal
         )
     
