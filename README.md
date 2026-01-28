@@ -336,6 +336,95 @@ await exchange.add_agent({
     "signer": "0xsigner...",
     "valid_until": int(time.time()) + 86400,  # 24 hours
 })
+
+# Revoke an agent
+await exchange.revoke_agent({
+    "agent": "0xagent...",
+    "for_account": "",  # optional: sub-account address
+})
+
+# Update leverage for a perpetual instrument
+await exchange.update_perp_instrument_leverage({
+    "instrument_id": 1,
+    "leverage": 10,  # 10x leverage
+})
+
+# Approve broker fee
+await exchange.approve_broker_fee({
+    "broker": "0xbroker...",
+    "max_fee_rate": "0.001",  # 0.1% max fee
+})
+
+# Create a referral code
+await exchange.create_referral_code({
+    "code": "MY_REFERRAL_CODE",
+})
+
+# Set referrer using a referral code
+await exchange.set_referrer({
+    "code": "FRIEND_REFERRAL_CODE",
+})
+
+# Claim referral rewards
+await exchange.claim_referral_rewards({
+    "collateral_id": 1,
+    "spot": True,  # True for spot account, False for derivatives
+})
+```
+
+#### Collateral Transfer Methods
+
+```python
+# Request spot collateral withdrawal to external chain
+await exchange.account_spot_withdraw_request({
+    "collateral_id": 1,
+    "amount": "100.0",
+    "chain_id": 1,  # Ethereum mainnet
+})
+
+# Request derivative collateral withdrawal to external chain
+await exchange.account_derivative_withdraw_request({
+    "collateral_id": 1,
+    "amount": "100.0",
+    "chain_id": 1,
+})
+
+# Transfer spot balance to another address on Hotstuff
+await exchange.account_spot_balance_transfer_request({
+    "collateral_id": 1,
+    "amount": "50.0",
+    "destination": "0xrecipient...",
+})
+
+# Transfer derivative balance to another address on Hotstuff
+await exchange.account_derivative_balance_transfer_request({
+    "collateral_id": 1,
+    "amount": "50.0",
+    "destination": "0xrecipient...",
+})
+
+# Transfer balance between spot and derivatives accounts
+await exchange.account_internal_balance_transfer_request({
+    "collateral_id": 1,
+    "amount": "25.0",
+    "to_derivatives_account": True,  # True: spot -> derivatives, False: derivatives -> spot
+})
+```
+
+#### Vault Methods
+
+```python
+# Deposit to a vault
+await exchange.deposit_to_vault({
+    "vault_address": "0xvault...",
+    "amount": "1000.0",
+})
+
+# Redeem shares from a vault
+await exchange.redeem_from_vault({
+    "vault_address": "0xvault...",
+    "shares": "500.0",
+})
 ```
 
 ---
@@ -757,4 +846,109 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+### Broker Fee with Agent Trading Example
+
+This example demonstrates the full flow of approving a broker fee from the main account, creating an agent, and placing orders through the agent with broker configuration.
+
+```python
+import asyncio
+import time
+import os
+from hotstuff import (
+    HttpTransport,
+    ExchangeClient,
+    HttpTransportOptions,
+)
+from eth_account import Account
+from hotstuff.methods.exchange.account import (
+    AddAgentParams,
+    ApproveBrokerFeeParams,
+)
+from hotstuff.methods.exchange.trading import (
+    PlaceOrderParams,
+    UnitOrder,
+    BrokerConfig,
+)
+
+
+async def broker_agent_trading_example():
+    transport = HttpTransport(HttpTransportOptions(is_testnet=True))
+
+    # Main account setup (the account that will approve broker fees and create agent)
+    main_account = Account.from_key(os.getenv("MAIN_PRIVATE_KEY"))
+    main_exchange = ExchangeClient(transport=transport, wallet=main_account)
+
+    # Broker address that will receive fees
+    broker_address = "0xBrokerAddress..."
+
+    # Step 1: Approve broker fee from main account
+    print("Approving broker fee...")
+    await main_exchange.approve_broker_fee(
+        ApproveBrokerFeeParams(
+            broker=broker_address,
+            max_fee_rate="0.001",  # 0.1% max fee rate
+        )
+    )
+    print("Broker fee approved!")
+
+    # Step 2: Generate agent credentials and add agent
+    agent_account = Account.create()
+    agent_private_key = agent_account.key.hex()
+
+    print("Adding agent...")
+    await main_exchange.add_agent(
+        AddAgentParams(
+            agent_name="broker-trading-agent",
+            agent=agent_account.address,
+            for_account="",
+            agent_private_key=agent_private_key,
+            signer=main_account.address,
+            valid_until=int(time.time() * 1000) + 86400000 * 30,  # Valid for 30 days
+        )
+    )
+    print(f"Agent added: {agent_account.address}")
+
+    # Step 3: Create exchange client for the agent
+    agent_exchange = ExchangeClient(transport=transport, wallet=agent_account)
+
+    # Step 4: Place order from agent with broker config
+    print("Placing order with broker fee...")
+    await agent_exchange.place_order(
+        PlaceOrderParams(
+            orders=[
+                UnitOrder(
+                    instrument_id=1,
+                    side="b",
+                    position_side="BOTH",
+                    price="50000.00",
+                    size="0.1",
+                    tif="GTC",
+                    ro=False,
+                    po=False,
+                    cloid=f"broker-order-{int(time.time())}",
+                    trigger_px=None,
+                    is_market=False,
+                    tpsl="",
+                    grouping="",
+                )
+            ],
+            broker_config=BrokerConfig(
+                broker=broker_address,
+                fee="0.0005",  # 0.05% fee (must be <= approved maxFeeRate)
+            ),
+            expires_after=int(time.time() * 1000) + 3600000,
+        )
+    )
+    print("Order placed with broker fee!")
+
+    # Optional: Revoke agent when done
+    # await main_exchange.revoke_agent(RevokeAgentParams(agent=agent_account.address))
+
+    await transport.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(broker_agent_trading_example())
 ```

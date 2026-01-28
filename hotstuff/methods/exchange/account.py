@@ -48,3 +48,73 @@ class AddAgentParams(BaseModel):
         if v is None or v == "":
             return v
         return validate_ethereum_address(v)
+
+
+# Revoke Agent Method
+class RevokeAgentParams(BaseModel):
+    """Parameters for revoking an agent."""
+    agent: str = Field(..., description="Agent address")
+    for_account: Optional[str] = Field(None, alias="forAccount", description="Account to revoke agent for")
+    nonce: Optional[int] = Field(None, description="Transaction nonce")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator('agent', mode='before')
+    @classmethod
+    def validate_agent_address(cls, v: str) -> str:
+        """Validate and checksum the agent address."""
+        return validate_ethereum_address(v)
+
+
+# Update Perp Instrument Leverage Method
+class UpdatePerpInstrumentLeverageParams(BaseModel):
+    """Parameters for updating perp instrument leverage."""
+    instrument_id: int = Field(..., alias="instrumentId", description="Instrument ID")
+    leverage: int = Field(..., description="Leverage value")
+    nonce: Optional[int] = Field(None, description="Transaction nonce")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+# Approve Broker Fee Method
+class ApproveBrokerFeeParams(BaseModel):
+    """Parameters for approving broker fee."""
+    broker: str = Field(..., description="Broker address")
+    max_fee_rate: str = Field(..., alias="maxFeeRate", description="Maximum fee rate")
+    nonce: Optional[int] = Field(None, description="Transaction nonce")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator('broker', mode='before')
+    @classmethod
+    def validate_broker_address(cls, v: str) -> str:
+        """Validate and checksum the broker address."""
+        return validate_ethereum_address(v)
+
+
+# Create Referral Code Method
+class CreateReferralCodeParams(BaseModel):
+    """Parameters for creating a referral code."""
+    code: str = Field(..., description="Referral code")
+    nonce: Optional[int] = Field(None, description="Transaction nonce")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+# Set Referrer Method
+class SetReferrerParams(BaseModel):
+    """Parameters for setting a referrer."""
+    code: str = Field(..., description="Referral code")
+    nonce: Optional[int] = Field(None, description="Transaction nonce")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+# Claim Referral Rewards Method
+class ClaimReferralRewardsParams(BaseModel):
+    """Parameters for claiming referral rewards."""
+    collateral_id: int = Field(..., alias="collateralId", description="Collateral ID")
+    spot: bool = Field(..., description="Whether to claim from spot account")
+    nonce: Optional[int] = Field(None, description="Transaction nonce")
+
+    model_config = ConfigDict(populate_by_name=True)
