@@ -18,6 +18,7 @@
   - [HttpTransport](#httptransport)
   - [WebSocketTransport](#websockettransport)
 - [Advanced Usage](#advanced-usage)
+- [Signing](#signing)
 - [Error Handling](#error-handling)
 - [Examples](#examples)
 
@@ -122,8 +123,16 @@ async def setup():
 #### Market Data Methods
 
 ```python
+import importlib
+
+global_methods = importlib.import_module("hotstuff.methods.info.global")
+InstrumentsParams = global_methods.InstrumentsParams
+TickerParams = global_methods.TickerParams
+OrderbookParams = global_methods.OrderbookParams
+TradesParams = global_methods.TradesParams
+
 # Get all instruments (perps, spot, options)
-instruments = await info.instruments({"type": "all"})
+instruments = await info.instruments(InstrumentsParams(type="all"))
 
 # Get supported collateral
 collateral = await info.supported_collateral({})
@@ -132,13 +141,13 @@ collateral = await info.supported_collateral({})
 oracle = await info.oracle({})
 
 # Get ticker for a specific symbol
-ticker = await info.ticker({"symbol": "BTC-PERP"})
+ticker = await info.ticker(TickerParams(symbol="BTC-PERP"))
 
 # Get orderbook with depth
-orderbook = await info.orderbook({"symbol": "BTC-PERP", "depth": 20})
+orderbook = await info.orderbook(OrderbookParams(symbol="BTC-PERP", depth=20))
 
 # Get recent trades
-trades = await info.trades({"symbol": "BTC-PERP", "limit": 50})
+trades = await info.trades(TradesParams(symbol="BTC-PERP", limit=50))
 
 # Get mid prices for all instruments
 mids = await info.mids({})
@@ -157,65 +166,84 @@ chart = await info.chart({
 #### Account Methods
 
 ```python
+from hotstuff.methods.info.account import (
+    AccountSummaryParams,
+    AccountInfoParams,
+    UserBalanceParams,
+    OpenOrdersParams,
+    PositionsParams,
+    OrderHistoryParams,
+    TradeHistoryParams,
+    FundingHistoryParams,
+    TransferHistoryParams,
+    AccountHistoryParams,
+    UserFeeInfoParams,
+    InstrumentLeverageParams,
+    ReferralInfoParams,
+    ReferralSummaryParams,
+    SubAccountsListParams,
+    AgentsParams,
+)
+
 user_address = "0x1234..."
 
 # Get account summary
-summary = await info.account_summary({"user": user_address})
+summary = await info.account_summary(AccountSummaryParams(user=user_address))
 
 # Get account info
-account_info = await info.account_info({"user": user_address})
+account_info = await info.account_info(AccountInfoParams(user=user_address))
 
 # Get user balance
-balance = await info.user_balance({"user": user_address})
+balance = await info.user_balance(UserBalanceParams(user=user_address))
 
 # Get open orders
-open_orders = await info.open_orders({"user": user_address})
+open_orders = await info.open_orders(OpenOrdersParams(user=user_address))
 
 # Get current positions
-positions = await info.positions({"user": user_address})
+positions = await info.positions(PositionsParams(user=user_address))
 
 # Get order history
-order_history = await info.order_history({
-    "user": user_address,
-    "limit": 100,
-})
+order_history = await info.order_history(OrderHistoryParams(
+    user=user_address,
+    limit=100,
+))
 
 # Get trade history (fills)
-trade_history = await info.trade_history({"user": user_address})
+trade_history = await info.trade_history(TradeHistoryParams(user=user_address))
 
 # Get funding history
-funding_history = await info.funding_history({"user": user_address})
+funding_history = await info.funding_history(FundingHistoryParams(user=user_address))
 
 # Get transfer history
-transfer_history = await info.transfer_history({"user": user_address})
+transfer_history = await info.transfer_history(TransferHistoryParams(user=user_address))
 
 # Get account history with time range
-account_history = await info.account_history({
-    "user": user_address,
-    "from": int(time.time()) - 86400,  # 24h ago
-    "to": int(time.time()),
-})
+account_history = await info.account_history(AccountHistoryParams(
+    user=user_address,
+    from_time=int(time.time()) - 86400,  # 24h ago
+    to_time=int(time.time()),
+))
 
 # Get user fee information
-fee_info = await info.user_fee_info({"user": user_address})
+fee_info = await info.user_fee_info(UserFeeInfoParams(user=user_address))
 
 # Get instrument leverage settings
-leverage = await info.instrument_leverage({
-    "user": user_address,
-    "instrumentId": 1,
-})
+leverage = await info.instrument_leverage(InstrumentLeverageParams(
+    user=user_address,
+    instrumentId=1,
+))
 
 # Get referral info
-referral_info = await info.get_referral_info({"user": user_address})
+referral_info = await info.get_referral_info(ReferralInfoParams(user=user_address))
 
 # Get referral summary
-referral_summary = await info.referral_summary({"user": user_address})
+referral_summary = await info.referral_summary(ReferralSummaryParams(user=user_address))
 
 # Get sub-accounts list
-sub_accounts = await info.sub_accounts_list({"user": user_address})
+sub_accounts = await info.sub_accounts_list(SubAccountsListParams(user=user_address))
 
 # Get agents
-agents = await info.agents({"user": user_address})
+agents = await info.agents(AgentsParams(user=user_address))
 ```
 
 #### Vault Methods
@@ -276,155 +304,222 @@ async def setup():
 
 ```python
 import time
+from hotstuff.methods.exchange.trading import (
+    PlaceOrderParams,
+    UnitOrder,
+    BrokerConfig,
+    CancelByOidParams,
+    CancelByCloidParams,
+    CancelAllParams,
+)
 
 # Place order(s)
-await exchange.place_order({
-    "orders": [
-        {
-            "instrumentId": 1,
-            "side": "b",  # 'b' for buy, 's' for sell
-            "positionSide": "LONG",  # 'LONG', 'SHORT', or 'BOTH'
-            "price": "50000.00",
-            "size": "0.1",
-            "tif": "GTC",  # 'GTC', 'IOC', or 'FOK'
-            "ro": False,  # reduce-only
-            "po": False,  # post-only
-            "cloid": "my-order-123",  # client order ID
-            "triggerPx": "51000.00",  # optional trigger price
-            "isMarket": False,  # optional market order flag
-            "tpsl": "",  # optional: 'tp', 'sl', or ''
-            "grouping": "normal",  # optional: 'position', 'normal', or ''
-        },
-    ],
-    "brokerConfig": {  # optional broker configuration
-        "broker": "0x0000000000000000000000000000000000000000",
-        "fee": "0.001",
-    },
-    "expiresAfter": int(time.time()) + 3600,  # 1 hour from now
-})
+await exchange.place_order(
+    PlaceOrderParams(
+        orders=[
+            UnitOrder(
+                instrument_id=1,
+                side="b",  # 'b' for buy, 's' for sell
+                position_side="BOTH",  # 'LONG', 'SHORT', or 'BOTH'
+                price="50000.00",
+                size="0.1",
+                tif="GTC",  # 'GTC', 'IOC', or 'FOK'
+                ro=False,  # reduce-only
+                po=False,  # post-only
+                cloid="my-order-123",  # client order ID
+                trigger_px="51000.00",  # optional trigger price
+                is_market=False,  # optional market order flag
+                tpsl="",  # optional: 'tp', 'sl', or ''
+                grouping="normal",  # optional: 'position', 'normal', or ''
+            ),
+        ],
+        broker_config=BrokerConfig(  # optional broker configuration
+            broker="0x0000000000000000000000000000000000000000",
+            fee="0.001",
+        ),
+        expires_after=int(time.time() * 1000) + 3600000,  # 1 hour from now (in milliseconds)
+    )
+)
 
 # Cancel order by order ID
-await exchange.cancel_by_oid({
-    "cancels": [
-        {"oid": 123456, "instrumentId": 1},
-        {"oid": 123457, "instrumentId": 1},
-    ],
-    "expiresAfter": int(time.time()) + 3600,
-})
+await exchange.cancel_by_oid(
+    CancelByOidParams(
+        cancels=[
+            {"oid": 123456, "instrumentId": 1},
+            {"oid": 123457, "instrumentId": 1},
+        ],
+        expires_after=int(time.time() * 1000) + 3600000,
+    )
+)
 
 # Cancel order by client order ID
-await exchange.cancel_by_cloid({
-    "cancels": [{"cloid": "my-order-123", "instrumentId": 1}],
-    "expiresAfter": int(time.time()) + 3600,
-})
+await exchange.cancel_by_cloid(
+    CancelByCloidParams(
+        cancels=[{"cloid": "my-order-123", "instrumentId": 1}],
+        expires_after=int(time.time() * 1000) + 3600000,
+    )
+)
 
 # Cancel all orders
-await exchange.cancel_all({
-    "expiresAfter": int(time.time()) + 3600,
-})
+await exchange.cancel_all(
+    CancelAllParams(
+        expires_after=int(time.time() * 1000) + 3600000,
+    )
+)
 ```
 
 #### Account Management
 
 ```python
+from hotstuff import AddAgentParams
+from hotstuff.methods.exchange.account import (
+    RevokeAgentParams,
+    ApproveBrokerFeeParams,
+    UpdatePerpInstrumentLeverageParams,
+    CreateReferralCodeParams,
+    SetReferrerParams,
+    ClaimReferralRewardsParams,
+)
+
 # Add an agent (requires agent private key)
-await exchange.add_agent({
-    "agent_name": "my-trading-bot",
-    "agent": "0xagent...",
-    "for_account": "",
-    "agent_private_key": "0xprivatekey...",
-    "signer": "0xsigner...",
-    "valid_until": int(time.time()) + 86400,  # 24 hours
-})
+await exchange.add_agent(
+    AddAgentParams(
+        agent_name="my-trading-bot",
+        agent="0xagent...",
+        for_account="",
+        agent_private_key="0xprivatekey...",
+        signer="0xsigner...",
+        valid_until=int(time.time() * 1000) + 86400000,  # 24 hours (in milliseconds)
+    )
+)
 
 # Revoke an agent
-await exchange.revoke_agent({
-    "agent": "0xagent...",
-    "for_account": "",  # optional: sub-account address
-})
+await exchange.revoke_agent(
+    RevokeAgentParams(
+        agent="0xagent...",
+        for_account="",  # optional: sub-account address
+    )
+)
 
 # Update leverage for a perpetual instrument
-await exchange.update_perp_instrument_leverage({
-    "instrument_id": 1,
-    "leverage": 10,  # 10x leverage
-})
+await exchange.update_perp_instrument_leverage(
+    UpdatePerpInstrumentLeverageParams(
+        instrument_id=1,
+        leverage=10,  # 10x leverage
+    )
+)
 
 # Approve broker fee
-await exchange.approve_broker_fee({
-    "broker": "0xbroker...",
-    "max_fee_rate": "0.001",  # 0.1% max fee
-})
+await exchange.approve_broker_fee(
+    ApproveBrokerFeeParams(
+        broker="0xbroker...",
+        max_fee_rate="0.001",  # 0.1% max fee
+    )
+)
 
 # Create a referral code
-await exchange.create_referral_code({
-    "code": "MY_REFERRAL_CODE",
-})
+await exchange.create_referral_code(
+    CreateReferralCodeParams(
+        code="MY_REFERRAL_CODE",
+    )
+)
 
 # Set referrer using a referral code
-await exchange.set_referrer({
-    "code": "FRIEND_REFERRAL_CODE",
-})
+await exchange.set_referrer(
+    SetReferrerParams(
+        code="FRIEND_REFERRAL_CODE",
+    )
+)
 
 # Claim referral rewards
-await exchange.claim_referral_rewards({
-    "collateral_id": 1,
-    "spot": True,  # True for spot account, False for derivatives
-})
+await exchange.claim_referral_rewards(
+    ClaimReferralRewardsParams(
+        collateral_id=1,
+        spot=True,  # True for spot account, False for derivatives
+    )
+)
 ```
 
 #### Collateral Transfer Methods
 
 ```python
+from hotstuff.methods.exchange.collateral import (
+    AccountSpotWithdrawRequestParams,
+    AccountDerivativeWithdrawRequestParams,
+    AccountSpotBalanceTransferRequestParams,
+    AccountDerivativeBalanceTransferRequestParams,
+    AccountInternalBalanceTransferRequestParams,
+)
+
 # Request spot collateral withdrawal to external chain
-await exchange.account_spot_withdraw_request({
-    "collateral_id": 1,
-    "amount": "100.0",
-    "chain_id": 1,  # Ethereum mainnet
-})
+await exchange.account_spot_withdraw_request(
+    AccountSpotWithdrawRequestParams(
+        collateral_id=1,
+        amount="100.0",
+        chain_id=1,  # Ethereum mainnet
+    )
+)
 
 # Request derivative collateral withdrawal to external chain
-await exchange.account_derivative_withdraw_request({
-    "collateral_id": 1,
-    "amount": "100.0",
-    "chain_id": 1,
-})
+await exchange.account_derivative_withdraw_request(
+    AccountDerivativeWithdrawRequestParams(
+        collateral_id=1,
+        amount="100.0",
+        chain_id=1,
+    )
+)
 
 # Transfer spot balance to another address on Hotstuff
-await exchange.account_spot_balance_transfer_request({
-    "collateral_id": 1,
-    "amount": "50.0",
-    "destination": "0xrecipient...",
-})
+await exchange.account_spot_balance_transfer_request(
+    AccountSpotBalanceTransferRequestParams(
+        collateral_id=1,
+        amount="50.0",
+        destination="0xrecipient...",
+    )
+)
 
 # Transfer derivative balance to another address on Hotstuff
-await exchange.account_derivative_balance_transfer_request({
-    "collateral_id": 1,
-    "amount": "50.0",
-    "destination": "0xrecipient...",
-})
+await exchange.account_derivative_balance_transfer_request(
+    AccountDerivativeBalanceTransferRequestParams(
+        collateral_id=1,
+        amount="50.0",
+        destination="0xrecipient...",
+    )
+)
 
 # Transfer balance between spot and derivatives accounts
-await exchange.account_internal_balance_transfer_request({
-    "collateral_id": 1,
-    "amount": "25.0",
-    "to_derivatives_account": True,  # True: spot -> derivatives, False: derivatives -> spot
-})
+await exchange.account_internal_balance_transfer_request(
+    AccountInternalBalanceTransferRequestParams(
+        collateral_id=1,
+        amount="25.0",
+        to_derivatives_account=True,  # True: spot -> derivatives, False: derivatives -> spot
+    )
+)
 ```
 
 #### Vault Methods
 
 ```python
+from hotstuff.methods.exchange.vault import (
+    DepositToVaultParams,
+    RedeemFromVaultParams,
+)
+
 # Deposit to a vault
-await exchange.deposit_to_vault({
-    "vault_address": "0xvault...",
-    "amount": "1000.0",
-})
+await exchange.deposit_to_vault(
+    DepositToVaultParams(
+        vault_address="0xvault...",
+        amount="1000.0",
+    )
+)
 
 # Redeem shares from a vault
-await exchange.redeem_from_vault({
-    "vault_address": "0xvault...",
-    "shares": "500.0",
-})
+await exchange.redeem_from_vault(
+    RedeemFromVaultParams(
+        vault_address="0xvault...",
+        shares="500.0",
+    )
+)
 ```
 
 ---
@@ -447,12 +542,18 @@ async def setup():
 #### Market Subscriptions
 
 ```python
+import importlib
+
+subscription_methods = importlib.import_module("hotstuff.methods.subscription.global")
+TickerSubscriptionParams = subscription_methods.TickerSubscriptionParams
+TradeSubscriptionParams = subscription_methods.TradeSubscriptionParams
+
 # Subscribe to ticker updates
 def handle_ticker(data):
     print(f"Ticker: {data.data}")
 
 ticker_sub = await subscriptions.ticker(
-    {"symbol": "BTC-PERP"},
+    TickerSubscriptionParams(symbol="BTC-PERP"),
     handle_ticker
 )
 
@@ -476,7 +577,7 @@ orderbook_sub = await subscriptions.orderbook(
 
 # Subscribe to trades
 trade_sub = await subscriptions.trade(
-    {"symbol": "BTC-PERP"},
+    TradeSubscriptionParams(instrument_id="BTC-PERP"),
     lambda data: print(f"Trade: {data.data}")
 )
 
@@ -743,6 +844,90 @@ ws_transport = WebSocketTransport(
 
 ---
 
+## Signing
+
+### How Signing Works
+
+The SDK uses EIP-712 typed data signing for all exchange actions. Here's what happens under the hood:
+
+1. **Action Encoding**: The action payload is encoded using MessagePack
+2. **Hashing**: The encoded bytes are hashed with keccak256
+3. **EIP-712 Signing**: The hash is signed using EIP-712 typed data with the following structure:
+
+```python
+from eth_account import Account
+from eth_account.messages import encode_structured_data
+from eth_utils import keccak
+import msgpack
+
+# EIP-712 Domain
+domain = {
+    "name": "HotstuffCore",
+    "version": "1",
+    "chainId": 1,
+    "verifyingContract": "0x1234567890123456789012345678901234567890",
+}
+
+# EIP-712 Types
+types = {
+    "EIP712Domain": [
+        {"name": "name", "type": "string"},
+        {"name": "version", "type": "string"},
+        {"name": "chainId", "type": "uint256"},
+        {"name": "verifyingContract", "type": "address"},
+    ],
+    "Action": [
+        {"name": "source", "type": "string"},    # "Testnet" or "Mainnet"
+        {"name": "hash", "type": "bytes32"},     # keccak256 of msgpack-encoded action
+        {"name": "txType", "type": "uint16"},    # transaction type identifier
+    ],
+}
+
+# Encode action to msgpack
+action_bytes = msgpack.packb(action)
+
+# Hash the payload
+payload_hash = keccak(action_bytes)
+
+# Message
+message = {
+    "source": "Testnet",  # or "Mainnet"
+    "hash": payload_hash,
+    "txType": tx_type,
+}
+
+# Create structured data
+structured_data = {
+    "types": types,
+    "primaryType": "Action",
+    "domain": domain,
+    "message": message,
+}
+
+# Encode and sign
+encoded_data = encode_structured_data(structured_data)
+signed_message = wallet.sign_message(encoded_data)
+signature = signed_message.signature.hex()
+```
+
+### Debugging Signature Issues
+
+It is recommended to use an existing SDK instead of manually generating signatures. There are many potential ways in which signatures can be wrong. An incorrect signature results in recovering a different signer based on the signature and payload and results in one of the following errors:
+
+```
+"Error: account does not exist."
+```
+
+```
+"invalid order signer"
+```
+
+where the returned address does not match the public address of the wallet you are signing with. The returned address also changes for different inputs.
+
+An incorrect signature does not indicate why it is incorrect which makes debugging more challenging. To debug this it is recommended to read through the SDK carefully and make sure the implementation matches exactly. If that doesn't work, add logging to find where the output diverges.
+
+---
+
 ## Error Handling
 
 ### HTTP Errors
@@ -751,9 +936,11 @@ HTTP transport raises exceptions with descriptive messages from the server:
 
 ```python
 try:
-    await exchange.place_order({
-        # ... order params
-    })
+    await exchange.place_order(
+        PlaceOrderParams(
+            # ... order params
+        )
+    )
 except Exception as e:
     print(f"Failed to place order: {e}")
 ```
@@ -781,6 +968,7 @@ except Exception as e:
 ```python
 import asyncio
 import time
+import os
 from hotstuff import (
     HttpTransport,
     WebSocketTransport,
@@ -791,47 +979,69 @@ from hotstuff import (
     WebSocketTransportOptions,
 )
 from eth_account import Account
+import importlib
+
+global_methods = importlib.import_module("hotstuff.methods.info.global")
+TickerParams = global_methods.TickerParams
+
+from hotstuff.methods.exchange.trading import (
+    PlaceOrderParams,
+    UnitOrder,
+    BrokerConfig,
+)
 
 async def main():
     # Setup
     http_transport = HttpTransport(HttpTransportOptions(is_testnet=True))
     ws_transport = WebSocketTransport(WebSocketTransportOptions(is_testnet=True))
 
-    account = Account.from_key("0xYOUR_PRIVATE_KEY")
+    account = Account.from_key(os.getenv("PRIVATE_KEY"))
 
     info = InfoClient(transport=http_transport)
     exchange = ExchangeClient(transport=http_transport, wallet=account)
     subscriptions = SubscriptionClient(transport=ws_transport)
 
     # Get current market data
-    ticker = await info.ticker({"symbol": "BTC-PERP"})
+    ticker = await info.ticker(TickerParams(symbol="BTC-PERP"))
     print(f"Current price: {ticker}")
 
     # Subscribe to live updates
-    async def handle_ticker(data):
+    def handle_ticker(data):
         price = data.data.get("last")
         print(f"Live price: {price}")
 
         # Simple trading logic
         if price and price < 50000:
-            try:
-                await exchange.place_order({
-                    "orders": [{
-                        "instrumentId": 1,
-                        "side": "b",
-                        "positionSide": "LONG",
-                        "price": str(price),
-                        "size": "0.1",
-                        "tif": "GTC",
-                        "ro": False,
-                        "po": False,
-                        "cloid": f"order-{int(time.time())}",
-                    }],
-                    "expiresAfter": int(time.time()) + 3600,
-                })
-                print("Order placed!")
-            except Exception as e:
-                print(f"Order failed: {e}")
+            asyncio.create_task(place_order(exchange, price))
+
+    async def place_order(exchange, price):
+        try:
+            await exchange.place_order(
+                PlaceOrderParams(
+                    orders=[
+                        UnitOrder(
+                            instrument_id=1,
+                            side="b",
+                            position_side="BOTH",
+                            price=str(price),
+                            size="0.1",
+                            tif="GTC",
+                            ro=False,
+                            po=False,
+                            cloid=f"order-{int(time.time())}",
+                            trigger_px=None,
+                            is_market=False,
+                            tpsl="",
+                            grouping="",
+                        )
+                    ],
+                    broker_config=BrokerConfig(broker="", fee=""),
+                    expires_after=int(time.time() * 1000) + 3600000,
+                )
+            )
+            print("Order placed!")
+        except Exception as e:
+            print(f"Order failed: {e}")
 
     ticker_sub = await subscriptions.ticker(
         {"symbol": "BTC-PERP"},
@@ -951,4 +1161,200 @@ async def broker_agent_trading_example():
 
 if __name__ == "__main__":
     asyncio.run(broker_agent_trading_example())
+```
+
+### WebSocket Subscriptions Example
+
+```python
+import asyncio
+import importlib
+from hotstuff import (
+    WebSocketTransport,
+    SubscriptionClient,
+    WebSocketTransportOptions,
+)
+
+subscription_methods = importlib.import_module("hotstuff.methods.subscription.global")
+TickerSubscriptionParams = subscription_methods.TickerSubscriptionParams
+TradeSubscriptionParams = subscription_methods.TradeSubscriptionParams
+
+
+async def main():
+    # Create WebSocket transport for testnet
+    transport = WebSocketTransport(
+        WebSocketTransportOptions(is_testnet=True)
+    )
+
+    # Create SubscriptionClient
+    subscriptions = SubscriptionClient(transport=transport)
+
+    try:
+        # Subscribe to ticker updates
+        def handle_ticker(data):
+            print(f"Ticker update: {data.data}")
+
+        print("Subscribing to BTC-PERP ticker...")
+        ticker_sub = await subscriptions.ticker(
+            TickerSubscriptionParams(symbol="BTC-PERP"),
+            handle_ticker
+        )
+
+        # Subscribe to trades
+        def handle_trade(data):
+            print(f"Trade: {data.data}")
+
+        print("Subscribing to BTC-PERP trades...")
+        trade_sub = await subscriptions.trade(
+            TradeSubscriptionParams(instrument_id="BTC-PERP"),
+            handle_trade
+        )
+
+        # Run for 30 seconds
+        print("\nListening to updates for 30 seconds...\n")
+        await asyncio.sleep(30)
+
+        # Unsubscribe
+        print("\nUnsubscribing...")
+        await ticker_sub["unsubscribe"]()
+        await trade_sub["unsubscribe"]()
+
+    finally:
+        # Clean up
+        await transport.disconnect()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Collateral Transfer Example
+
+```python
+import asyncio
+import os
+from hotstuff import (
+    HttpTransport,
+    ExchangeClient,
+    HttpTransportOptions,
+)
+from eth_account import Account
+from hotstuff.methods.exchange.collateral import (
+    AccountSpotWithdrawRequestParams,
+    AccountDerivativeWithdrawRequestParams,
+    AccountSpotBalanceTransferRequestParams,
+    AccountDerivativeBalanceTransferRequestParams,
+    AccountInternalBalanceTransferRequestParams,
+)
+
+
+async def main():
+    transport = HttpTransport(HttpTransportOptions(is_testnet=True))
+    account = Account.from_key(os.getenv("PRIVATE_KEY"))
+    exchange = ExchangeClient(transport=transport, wallet=account)
+
+    try:
+        # Request spot collateral withdrawal to external chain
+        result = await exchange.account_spot_withdraw_request(
+            AccountSpotWithdrawRequestParams(
+                collateral_id=1,  # USDC
+                amount="100.0",
+                chain_id=1,  # Ethereum mainnet
+            )
+        )
+        print(f"Spot withdraw request result: {result}")
+
+        # Request derivative collateral withdrawal to external chain
+        result = await exchange.account_derivative_withdraw_request(
+            AccountDerivativeWithdrawRequestParams(
+                collateral_id=1,  # USDC
+                amount="50.0",
+                chain_id=1,  # Ethereum mainnet
+            )
+        )
+        print(f"Derivative withdraw request result: {result}")
+
+        # Transfer spot balance to another address on Hotstuff
+        recipient_address = "0x1234567890123456789012345678901234567890"
+        result = await exchange.account_spot_balance_transfer_request(
+            AccountSpotBalanceTransferRequestParams(
+                collateral_id=1,  # USDC
+                amount="25.0",
+                destination=recipient_address,
+            )
+        )
+        print(f"Spot balance transfer result: {result}")
+
+        # Internal transfer between spot and derivatives accounts
+        result = await exchange.account_internal_balance_transfer_request(
+            AccountInternalBalanceTransferRequestParams(
+                collateral_id=1,  # USDC
+                amount="10.0",
+                to_derivatives_account=True,  # Transfer from spot to derivatives
+            )
+        )
+        print(f"Internal transfer result: {result}")
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+    finally:
+        await transport.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Vault Operations Example
+
+```python
+import asyncio
+import os
+from hotstuff import (
+    HttpTransport,
+    ExchangeClient,
+    HttpTransportOptions,
+)
+from eth_account import Account
+from hotstuff.methods.exchange.vault import (
+    DepositToVaultParams,
+    RedeemFromVaultParams,
+)
+
+
+async def main():
+    transport = HttpTransport(HttpTransportOptions(is_testnet=True))
+    account = Account.from_key(os.getenv("PRIVATE_KEY"))
+    exchange = ExchangeClient(transport=transport, wallet=account)
+
+    vault_address = "0x1234567890123456789012345678901234567890"
+
+    try:
+        # Deposit to a vault
+        result = await exchange.deposit_to_vault(
+            DepositToVaultParams(
+                vault_address=vault_address,
+                amount="1000.0",
+            )
+        )
+        print(f"Deposit result: {result}")
+
+        # Redeem shares from a vault
+        result = await exchange.redeem_from_vault(
+            RedeemFromVaultParams(
+                vault_address=vault_address,
+                shares="500.0",
+            )
+        )
+        print(f"Redeem result: {result}")
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+    finally:
+        await transport.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```

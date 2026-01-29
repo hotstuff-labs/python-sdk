@@ -3,7 +3,7 @@
 A Python SDK for interacting with Hotstuff Labs decentralized exchange.
 """
 
-__version__ = "0.0.1-beta.1"
+__version__ = "0.0.1-beta.2"
 
 from hotstuff.transports import HttpTransport, WebSocketTransport
 from hotstuff.apis import InfoClient, ExchangeClient, SubscriptionClient
