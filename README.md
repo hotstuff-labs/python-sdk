@@ -1,10 +1,10 @@
 # Hotstuff Python SDK
 
-[![PyPI version](https://img.shields.io/pypi/v/hotstuff-sdk.svg)](https://pypi.org/project/hotstuff-sdk/)
+[![PyPI version](https://img.shields.io/pypi/v/hotstuff-python-sdk.svg)](https://pypi.org/project/hotstuff-python-sdk/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python Versions](https://img.shields.io/pypi/pyversions/hotstuff-sdk.svg)](https://pypi.org/project/hotstuff-sdk/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/hotstuff-python-sdk.svg)](https://pypi.org/project/hotstuff-python-sdk/)
 
-> Python SDK for interacting with Hotstuff Labs decentralized exchange
+> Python SDK for interacting with Hotstuff L1
 
 ## Table of Contents
 
