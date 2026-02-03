@@ -114,9 +114,13 @@ class SpotInstrument(BaseModel):
 
 
 class InstrumentsResponse(BaseModel):
-    """Instruments response."""
-    perps: List[PerpInstrument]
-    spot: List[SpotInstrument]
+    """Instruments response.
+    
+    Testnet may return only perps (no spot key); both lists default to empty
+    when the key is missing so validation succeeds on testnet and mainnet.
+    """
+    perps: List[PerpInstrument] = Field(default_factory=list, description="Perpetual instruments")
+    spot: List[SpotInstrument] = Field(default_factory=list, description="Spot instruments (may be omitted on testnet)")
 
 
 # Ticker Method

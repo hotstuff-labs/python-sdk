@@ -179,6 +179,35 @@ class TestMarketModels:
         
         with pytest.raises(ValidationError):
             InstrumentsParams(type="invalid")
+    
+    def test_instruments_response_perps_only(self):
+        """Test InstrumentsResponse accepts perps-only (testnet may omit spot)."""
+        from hotstuff import InstrumentsResponse
+        
+        # Testnet returns only {"perps": [...]}; spot may be omitted
+        response = InstrumentsResponse.model_validate({"perps": []})
+        assert response.perps == []
+        assert response.spot == []
+        
+        response_with_perp = InstrumentsResponse.model_validate({
+            "perps": [{
+                "id": 1,
+                "name": "BTC-PERP",
+                "price_index": "BTC",
+                "lot_size": 0.001,
+                "tick_size": 0.1,
+                "settlement_currency": 1,
+                "only_isolated": False,
+                "max_leverage": 50,
+                "delisted": False,
+                "min_notional_usd": 10,
+                "margin_tiers": [{"notional_usd_threshold": "0", "max_leverage": 50, "mmr": 0.02, "mmd": 0}],
+                "listed_at_block_timestamp": 0,
+            }],
+        })
+        assert len(response_with_perp.perps) == 1
+        assert response_with_perp.perps[0].name == "BTC-PERP"
+        assert response_with_perp.spot == []
 
 
 class TestAddressValidation:
