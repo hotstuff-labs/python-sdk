@@ -13,6 +13,20 @@ except ImportError:
     _USE_NEW_API = False
 
 
+def canonicalize_for_signing(obj):
+    """
+    Return a copy of obj with all dict keys sorted alphabetically, recursively.
+    Use this before signing and in the request body so msgpack bytes are
+    deterministic and match backend verification (fixes "invalid order signer"
+    for cancelByOid / cancelByCloid when key order differs from backend).
+    """
+    if isinstance(obj, dict):
+        return {k: canonicalize_for_signing(v) for k, v in sorted(obj.items())}
+    if isinstance(obj, list):
+        return [canonicalize_for_signing(item) for item in obj]
+    return obj
+
+
 def sign_action(
     wallet: Account,
     action: dict,
@@ -34,8 +48,10 @@ def sign_action(
     Returns:
         str: The signature (hex string)
     """
+    # Canonicalize key order so msgpack bytes match backend (deterministic signing)
+    canonical_action = canonicalize_for_signing(action)
     # Encode action to msgpack
-    action_bytes = msgpack.packb(action)
+    action_bytes = msgpack.packb(canonical_action)
     
     # Hash the payload
     payload_hash = keccak(action_bytes)

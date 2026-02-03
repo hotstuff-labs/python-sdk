@@ -2,7 +2,7 @@
 from typing import Optional, Any, Dict, Callable, Awaitable
 from eth_account import Account
 
-from hotstuff.utils import sign_action, NonceManager
+from hotstuff.utils import sign_action, NonceManager, canonicalize_for_signing
 from hotstuff.methods.exchange import (
     trading as TM,
     account as AM,
@@ -480,28 +480,32 @@ class ExchangeClient:
         if "nonce" not in params or params["nonce"] is None:
             params["nonce"] = await self.nonce()
         
-        # Sign the action
+        # Canonicalize key order so msgpack bytes match backend (fixes "invalid order signer"
+        # for cancelByOid / cancelByCloid when backend expects deterministic key order)
+        params_canonical = canonicalize_for_signing(params)
+        
+        # Sign the action (sign_action also canonicalizes; we pass canonical for consistency)
         signature = sign_action(
             wallet=self.wallet,
-            action=params,
+            action=params_canonical,
             tx_type=EXCHANGE_OP_CODES[action],
             is_testnet=self.transport.is_testnet,
         )
         
         if execute:
-            # Send to server
+            # Send to server with same canonical payload we signed
             response = await self.transport.request(
                 "exchange",
                 {
                     "action": {
-                        "data": params,
+                        "data": params_canonical,
                         "type": str(EXCHANGE_OP_CODES[action]),
                     },
                     "signature": signature,
-                    "nonce": params["nonce"],
+                    "nonce": params_canonical["nonce"],
                 },
                 signal,
             )
             return response
         
-        return {"params": params, "signature": signature}
+        return {"params": params_canonical, "signature": signature}
