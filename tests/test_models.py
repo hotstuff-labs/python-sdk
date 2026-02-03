@@ -19,11 +19,80 @@ class TestOrderModels:
             tif="GTC",
             ro=False,
             po=False,
-            cloid="test-123",
+            cloid="0x1234567890abcdef1234567890abcdef",
         )
         assert order.instrument_id == 1
         assert order.side == "b"
-        assert order.cloid == "test-123"
+        assert order.cloid == "0x1234567890abcdef1234567890abcdef"
+    
+    def test_unit_order_without_cloid(self):
+        """Test UnitOrder creation without cloid (optional field)."""
+        from hotstuff import UnitOrder
+        
+        order = UnitOrder(
+            instrument_id=1,
+            side="b",
+            position_side="BOTH",
+            price="50000.00",
+            size="0.01",
+            tif="GTC",
+            ro=False,
+            po=False,
+        )
+        assert order.instrument_id == 1
+        assert order.cloid is None
+        # Serialized cloid should be empty string
+        assert order.model_dump()["cloid"] == ""
+    
+    def test_unit_order_valid_cloid_format(self):
+        """Test UnitOrder with valid cloid format (0x + 32 hex digits)."""
+        from hotstuff import UnitOrder
+        
+        order = UnitOrder(
+            instrument_id=1,
+            side="b",
+            position_side="BOTH",
+            price="50000.00",
+            size="0.01",
+            tif="GTC",
+            ro=False,
+            po=False,
+            cloid="0x1234567890abcdef1234567890abcdef",
+        )
+        assert order.cloid == "0x1234567890abcdef1234567890abcdef"
+    
+    def test_unit_order_invalid_cloid_format(self):
+        """Test UnitOrder with invalid cloid format raises error."""
+        from hotstuff import UnitOrder
+        
+        # Too short
+        with pytest.raises(ValidationError) as exc_info:
+            UnitOrder(
+                instrument_id=1,
+                side="b",
+                position_side="BOTH",
+                price="50000.00",
+                size="0.01",
+                tif="GTC",
+                ro=False,
+                po=False,
+                cloid="0x1234",
+            )
+        assert "32 hex digits" in str(exc_info.value)
+        
+        # Missing 0x prefix
+        with pytest.raises(ValidationError):
+            UnitOrder(
+                instrument_id=1,
+                side="b",
+                position_side="BOTH",
+                price="50000.00",
+                size="0.01",
+                tif="GTC",
+                ro=False,
+                po=False,
+                cloid="1234567890abcdef1234567890abcdef",
+            )
     
     def test_unit_order_invalid_side(self):
         """Test UnitOrder with invalid side."""
@@ -74,7 +143,7 @@ class TestOrderModels:
                     tif="GTC",
                     ro=False,
                     po=False,
-                    cloid="test-123",
+                    cloid="0xabcdef1234567890abcdef1234567890",
                 )
             ],
             broker_config=BrokerConfig(broker="", fee="0"),
