@@ -1,11 +1,10 @@
 """Info API client."""
 from typing import Optional, Any, List
-import importlib
 
-GM = importlib.import_module("hotstuff.methods.info.global")
-AM = importlib.import_module("hotstuff.methods.info.account")
-VM = importlib.import_module("hotstuff.methods.info.vault")
-EM = importlib.import_module("hotstuff.methods.info.explorer")
+from hotstuff.methods.info import market as GM
+from hotstuff.methods.info import account as AM
+from hotstuff.methods.info import vault as VM
+from hotstuff.methods.info import explorer as EM
 
 
 class InfoClient:
@@ -110,11 +109,12 @@ class InfoClient:
     
     async def positions(
         self, params: AM.PositionsParams, signal: Optional[Any] = None
-    ) -> AM.PositionsResponse:
+    ) -> Any:
         """Get current positions."""
         request = {"method": "positions", "params": params.model_dump()}
         response = await self.transport.request("info", request, signal)
-        return AM.PositionsResponse.model_validate(response)
+        # Returns a list of positions
+        return response
     
     async def account_summary(
         self, params: AM.AccountSummaryParams, signal: Optional[Any] = None

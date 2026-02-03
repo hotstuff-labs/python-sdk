@@ -1,30 +1,8 @@
 """Account info method types."""
 from typing import List, Literal, Optional, Annotated
 from pydantic import BaseModel, Field, ConfigDict, field_validator, RootModel
-from eth_utils import is_address, to_checksum_address
 
-
-def validate_ethereum_address(value: str) -> str:
-    """
-    Validate and normalize an Ethereum address.
-    
-    Args:
-        value: The address string to validate
-        
-    Returns:
-        Checksummed address string
-        
-    Raises:
-        ValueError: If the address is invalid
-    """
-    if not isinstance(value, str):
-        raise ValueError(f"Address must be a string, got {type(value)}")
-    
-    if not is_address(value):
-        raise ValueError(f"Invalid Ethereum address: {value}")
-    
-    # Return checksummed address (EIP-55)
-    return to_checksum_address(value)
+from hotstuff.utils.address import validate_ethereum_address
 
 
 # Type alias for validated Ethereum addresses (similar to viem's Address type)
@@ -54,6 +32,8 @@ class OpenOrdersParams(BaseModel):
 
 class OpenOrder(BaseModel):
     """Open order information."""
+    model_config = ConfigDict(extra='allow')
+    
     order_id: int
     user: str
     instrument_id: int
@@ -65,17 +45,28 @@ class OpenOrder(BaseModel):
     state: Literal["open", "filled", "cancelled", "triggered"]
     cloid: str
     tif: Literal["GTC", "IOC", "FOK"]
-    tpsl: Literal["tp", "sl", ""]
-    trigger_px: str
-    trigger_price: Optional[str] = None
+    tpsl: Optional[str] = None  # Can be "tp", "sl", or ""
+    trigger_px: Optional[str] = None
+    trigger_price: Optional[str] = None  # Alternative field name
     post_only: bool
     reduce_only: bool
+    is_market: Optional[bool] = None  # Optional market order flag
+    grouping: Optional[str] = None  # Optional grouping
     timestamp: str
 
 
 class OpenOrdersResponse(BaseModel):
     """Open orders response."""
-    orders: List[OpenOrder] = Field(..., description="List of open orders")
+    model_config = ConfigDict(extra='allow')
+    
+    orders: List[OpenOrder] = Field(default_factory=list, description="List of open orders")
+    # Pagination fields (optional)
+    page: Optional[int] = None
+    limit: Optional[int] = None
+    total_count: Optional[int] = Field(None, alias="totalCount")
+    total_pages: Optional[int] = Field(None, alias="totalPages")
+    has_next: Optional[bool] = Field(None, alias="hasNext")
+    has_prev: Optional[bool] = Field(None, alias="hasPrev")
 
 
 # Positions Method
@@ -91,9 +82,28 @@ class PositionsParams(BaseModel):
         return validate_ethereum_address(v)
 
 
-class PositionsResponse(BaseModel):
-    """Positions response."""
-    pass
+class Position(BaseModel):
+    """Individual position information."""
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    user: str
+    instrument_id: int = Field(alias="instrumentId")
+    instrument: str
+    side: Literal["LONG", "SHORT"]
+    size: str
+    entry_price: str = Field(alias="entryPrice")
+    mark_price: Optional[str] = Field(None, alias="markPrice")
+    margin: str
+    unrealized_pnl: str = Field(alias="unrealizedPnl")
+    realized_pnl: Optional[str] = Field(None, alias="realizedPnl")
+    liquidation_price: Optional[str] = Field(None, alias="liquidationPrice")
+    leverage: Optional[str] = None
+    margin_type: Optional[str] = Field(None, alias="marginType")
+    updated_at: Optional[int] = Field(None, alias="updatedAt")
+
+
+# Note: positions endpoint returns List[Position] directly, not wrapped in PositionsResponse
+PositionsResponse = List[Position]
 
 
 # Account Summary Method
@@ -131,7 +141,13 @@ class ReferralSummaryParams(BaseModel):
 
 class ReferralSummaryResponse(BaseModel):
     """Referral summary response."""
-    pass 
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    referral_code: Optional[str] = Field(None, alias="referralCode")
+    total_referrals: Optional[int] = Field(None, alias="totalReferrals")
+    total_volume: Optional[str] = Field(None, alias="totalVolume")
+    total_rewards: Optional[str] = Field(None, alias="totalRewards")
+    tier: Optional[str] = None
 
 
 # User Fee Info Method
@@ -148,7 +164,13 @@ class UserFeeInfoParams(BaseModel):
 
 class UserFeeInfoResponse(BaseModel):
     """User fee info response."""
-    pass 
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    maker_fee: Optional[str] = Field(None, alias="makerFee")
+    taker_fee: Optional[str] = Field(None, alias="takerFee")
+    volume_tier: Optional[str] = Field(None, alias="volumeTier")
+    trading_volume_30d: Optional[str] = Field(None, alias="tradingVolume30d")
+    discount: Optional[str] = None
 
 
 # Account History Method

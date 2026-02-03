@@ -38,7 +38,6 @@ class ExchangeClient:
     async def add_agent(
         self,
         params: AM.AddAgentParams,
-        execute: bool = True,
         signal: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
@@ -46,7 +45,6 @@ class ExchangeClient:
         
         Args:
             params: Agent parameters
-            execute: Whether to execute the action
             signal: Optional abort signal
             
         Returns:
@@ -58,7 +56,7 @@ class ExchangeClient:
         agent_account = Account.from_key(params.agent_private_key)
         
         # Sign with agent account
-        agent_signature = await sign_action(
+        agent_signature = sign_action(
             wallet=agent_account,
             action={
                 "signer": params.signer,
@@ -80,8 +78,7 @@ class ExchangeClient:
         
         return await self._execute_action(
             {"action": "addAgent", "params": params_dict},
-            signal,
-            execute
+            signal
         )
 
     async def revoke_agent(
@@ -484,11 +481,11 @@ class ExchangeClient:
             params["nonce"] = await self.nonce()
         
         # Sign the action
-        signature = await sign_action(
+        signature = sign_action(
             wallet=self.wallet,
             action=params,
             tx_type=EXCHANGE_OP_CODES[action],
-            is_testnet=True,
+            is_testnet=self.transport.is_testnet,
         )
         
         if execute:

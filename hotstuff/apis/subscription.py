@@ -1,8 +1,7 @@
 """Subscription API client for real-time data."""
 from typing import Callable, Dict, Any
-import importlib
 
-SM = importlib.import_module("hotstuff.methods.subscription.global")
+from hotstuff.methods.subscription import channels as SM
 
 
 class SubscriptionClient:
@@ -153,16 +152,13 @@ class SubscriptionClient:
         Subscribe to order updates.
         
         Args:
-            params: Subscription parameters (address)
+            params: Subscription parameters (user address)
             listener: Callback function for updates
             
         Returns:
             Subscription object with unsubscribe method
         """
-        # Convert to format expected by API (both address and user)
-        params_dict = params.model_dump()
-        params_dict["user"] = params_dict["address"]
-        return await self.transport.subscribe("accountOrderUpdates", params_dict, listener)
+        return await self.transport.subscribe("accountOrderUpdates", params.model_dump(), listener)
     
     async def account_balance_updates(
         self,
@@ -173,16 +169,13 @@ class SubscriptionClient:
         Subscribe to balance updates.
         
         Args:
-            params: Subscription parameters (address)
+            params: Subscription parameters (user address)
             listener: Callback function for updates
             
         Returns:
             Subscription object with unsubscribe method
         """
-        # Convert to format expected by API (both address and user)
-        params_dict = params.model_dump()
-        params_dict["user"] = params_dict["address"]
-        return await self.transport.subscribe("accountBalanceUpdates", params_dict, listener)
+        return await self.transport.subscribe("accountBalanceUpdates", params.model_dump(), listener)
     
     async def positions(
         self,
@@ -193,16 +186,13 @@ class SubscriptionClient:
         Subscribe to position updates.
         
         Args:
-            params: Subscription parameters (address)
+            params: Subscription parameters (user address)
             listener: Callback function for updates
             
         Returns:
             Subscription object with unsubscribe method
         """
-        # Convert to format expected by API (both address and user)
-        params_dict = params.model_dump()
-        params_dict["user"] = params_dict["address"]
-        return await self.transport.subscribe("positions", params_dict, listener)
+        return await self.transport.subscribe("positions", params.model_dump(), listener)
     
     async def fills(
         self,
@@ -213,16 +203,13 @@ class SubscriptionClient:
         Subscribe to fills.
         
         Args:
-            params: Subscription parameters (address)
+            params: Subscription parameters (user address)
             listener: Callback function for updates
             
         Returns:
             Subscription object with unsubscribe method
         """
-        # Convert to format expected by API (both address and user)
-        params_dict = params.model_dump()
-        params_dict["user"] = params_dict["address"]
-        return await self.transport.subscribe("fills", params_dict, listener)
+        return await self.transport.subscribe("fills", params.model_dump(), listener)
     
     async def account_summary(
         self,
