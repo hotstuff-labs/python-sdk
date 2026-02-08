@@ -25,14 +25,14 @@ from hotstuff.methods.exchange.trading import (
 async def main():
     """Main example function."""
     # Get private key from environment
-    private_key = os.getenv("PRIVATE_KEY")
+    private_key = os.getenv("AGENT_PRIVATE_KEY")
     if not private_key:
-        print("ERROR: PRIVATE_KEY environment variable must be set")
+        print("ERROR: AGENT_PRIVATE_KEY environment variable must be set")
         return
     
     # Create HTTP transport for testnet
     transport = HttpTransport(
-        HttpTransportOptions(is_testnet=True)
+        HttpTransportOptions(is_testnet=False)
     )
     
     # Create account from private key
@@ -62,7 +62,7 @@ async def main():
                         side="b",  # buy
                         position_side="BOTH",
                         price= str(current_price),  
-                        size="0.01",
+                        size="0.0005",
                         tif="GTC",
                         ro=False,
                         po=False,  # post-only
@@ -73,10 +73,6 @@ async def main():
                         grouping="",
                     )
                 ],
-                broker_config=BrokerConfig(
-                    broker="",
-                    fee="0.001",
-                ),
                 expires_after=int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
             )
         )

@@ -1,33 +1,12 @@
 """Signing utilities for EIP-712 typed data."""
 import msgpack
 from eth_account import Account
+from eth_account.messages import encode_structured_data
 from eth_utils import keccak
 from hotstuff.methods.exchange.op_codes import EXCHANGE_OP_CODES
 
-# Check which API to use for encoding typed data
-try:
-    from eth_account.messages import encode_typed_data
-    _USE_NEW_API = True
-except ImportError:
-    from eth_account.messages import encode_structured_data
-    _USE_NEW_API = False
 
-
-def canonicalize_for_signing(obj):
-    """
-    Return a copy of obj with all dict keys sorted alphabetically, recursively.
-    Use this before signing and in the request body so msgpack bytes are
-    deterministic and match backend verification (fixes "invalid order signer"
-    for cancelByOid / cancelByCloid when key order differs from backend).
-    """
-    if isinstance(obj, dict):
-        return {k: canonicalize_for_signing(v) for k, v in sorted(obj.items())}
-    if isinstance(obj, list):
-        return [canonicalize_for_signing(item) for item in obj]
-    return obj
-
-
-def sign_action(
+async def sign_action(
     wallet: Account,
     action: dict,
     tx_type: int,
@@ -36,9 +15,6 @@ def sign_action(
     """
     Sign an action using EIP-712.
     
-    This is a synchronous function that generates an EIP-712 signature
-    for the given action data.
-    
     Args:
         wallet: The account to sign with
         action: The action data
@@ -46,12 +22,10 @@ def sign_action(
         is_testnet: Whether this is for testnet
         
     Returns:
-        str: The signature (hex string)
+        str: The signature
     """
-    # Canonicalize key order so msgpack bytes match backend (deterministic signing)
-    canonical_action = canonicalize_for_signing(action)
     # Encode action to msgpack
-    action_bytes = msgpack.packb(canonical_action)
+    action_bytes = msgpack.packb(action)
     
     # Hash the payload
     payload_hash = keccak(action_bytes)
@@ -64,8 +38,14 @@ def sign_action(
         "verifyingContract": "0x1234567890123456789012345678901234567890",
     }
     
-    # EIP-712 message types (without EIP712Domain for new API)
-    message_types = {
+    # EIP-712 types
+    types = {
+        "EIP712Domain": [
+            {"name": "name", "type": "string"},
+            {"name": "version", "type": "string"},
+            {"name": "chainId", "type": "uint256"},
+            {"name": "verifyingContract", "type": "address"},
+        ],
         "Action": [
             {"name": "source", "type": "string"},
             {"name": "hash", "type": "bytes32"},
@@ -73,41 +53,23 @@ def sign_action(
         ],
     }
     
-    # Message data
+    # Message
     message = {
         "source": "Testnet" if is_testnet else "Mainnet",
         "hash": payload_hash,
         "txType": tx_type,
     }
     
-    if _USE_NEW_API:
-        # New API (eth-account >= 0.9): use 3-argument form
-        encoded_data = encode_typed_data(
-            domain_data=domain,
-            message_types=message_types,
-            message_data=message,
-        )
-    else:
-        # Legacy API (eth-account < 0.9): use full_message form
-        # Include EIP712Domain in types for legacy API
-        types_with_domain = {
-            "EIP712Domain": [
-                {"name": "name", "type": "string"},
-                {"name": "version", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "verifyingContract", "type": "address"},
-            ],
-            **message_types,
-        }
-        structured_data = {
-            "types": types_with_domain,
-            "primaryType": "Action",
-            "domain": domain,
-            "message": message,
-        }
-        encoded_data = encode_structured_data(structured_data)
+    # Create structured data
+    structured_data = {
+        "types": types,
+        "primaryType": "Action",
+        "domain": domain,
+        "message": message,
+    }
     
+    # Encode and sign
+    encoded_data = encode_structured_data(structured_data)
     signed_message = wallet.sign_message(encoded_data)
     
     return signed_message.signature.hex()
-
