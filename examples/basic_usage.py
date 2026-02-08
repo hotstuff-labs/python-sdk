@@ -18,7 +18,7 @@ async def main():
     """Main example function."""
     # Create HTTP transport for testnet
     transport = HttpTransport(
-        HttpTransportOptions(is_testnet=True)
+        HttpTransportOptions(is_testnet=False)
     )
     
     # Create InfoClient
