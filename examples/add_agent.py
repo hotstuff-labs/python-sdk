@@ -35,7 +35,7 @@ async def main():
     
     # Create HTTP transport for testnet
     transport = HttpTransport(
-        HttpTransportOptions(is_testnet=True)
+        HttpTransportOptions(is_testnet=False)
     )
 
     # Create accounts from private keys

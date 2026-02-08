@@ -80,7 +80,7 @@ class MarginTier(BaseModel):
     notional_usd_threshold: str
     max_leverage: int
     mmr: float
-    mmd: int
+    mmd: float
 
 
 class PerpInstrument(BaseModel):

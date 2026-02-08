@@ -4,28 +4,6 @@ from eth_account import Account
 from eth_utils import keccak
 from hotstuff.methods.exchange.op_codes import EXCHANGE_OP_CODES
 
-# Check which API to use for encoding typed data
-try:
-    from eth_account.messages import encode_typed_data
-    _USE_NEW_API = True
-except ImportError:
-    from eth_account.messages import encode_structured_data
-    _USE_NEW_API = False
-
-
-def canonicalize_for_signing(obj):
-    """
-    Return a copy of obj with all dict keys sorted alphabetically, recursively.
-    Use this before signing and in the request body so msgpack bytes are
-    deterministic and match backend verification (fixes "invalid order signer"
-    for cancelByOid / cancelByCloid when key order differs from backend).
-    """
-    if isinstance(obj, dict):
-        return {k: canonicalize_for_signing(v) for k, v in sorted(obj.items())}
-    if isinstance(obj, list):
-        return [canonicalize_for_signing(item) for item in obj]
-    return obj
-
 
 def sign_action(
     wallet: Account,
