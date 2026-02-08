@@ -2,7 +2,7 @@
 from typing import Optional, Any, Dict, Callable, Awaitable
 from eth_account import Account
 
-from hotstuff.utils import sign_action, NonceManager, canonicalize_for_signing
+from hotstuff.utils import sign_action, NonceManager
 from hotstuff.methods.exchange import (
     trading as TM,
     account as AM,
@@ -56,7 +56,7 @@ class ExchangeClient:
         agent_account = Account.from_key(params.agent_private_key)
         
         # Sign with agent account
-        agent_signature = sign_action(
+        agent_signature = await sign_action(
             wallet=agent_account,
             action={
                 "signer": params.signer,
@@ -480,32 +480,28 @@ class ExchangeClient:
         if "nonce" not in params or params["nonce"] is None:
             params["nonce"] = await self.nonce()
         
-        # Canonicalize key order so msgpack bytes match backend (fixes "invalid order signer"
-        # for cancelByOid / cancelByCloid when backend expects deterministic key order)
-        params_canonical = canonicalize_for_signing(params)
-        
-        # Sign the action (sign_action also canonicalizes; we pass canonical for consistency)
-        signature = sign_action(
+        # Sign the action
+        signature = await sign_action(
             wallet=self.wallet,
-            action=params_canonical,
+            action=params,
             tx_type=EXCHANGE_OP_CODES[action],
             is_testnet=self.transport.is_testnet,
         )
         
         if execute:
-            # Send to server with same canonical payload we signed
+            # Send to server
             response = await self.transport.request(
                 "exchange",
                 {
                     "action": {
-                        "data": params_canonical,
+                        "data": params,
                         "type": str(EXCHANGE_OP_CODES[action]),
                     },
                     "signature": signature,
-                    "nonce": params_canonical["nonce"],
+                    "nonce": params["nonce"],
                 },
                 signal,
             )
             return response
         
-        return {"params": params_canonical, "signature": signature}
+        return {"params": params, "signature": signature}
