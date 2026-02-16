@@ -3,6 +3,7 @@ import asyncio
 import time
 import os
 from hotstuff import (
+    CancelByOidParams,
     HttpTransport,
     ExchangeClient,
     InfoClient,
@@ -20,7 +21,9 @@ from hotstuff.methods.exchange.trading import (
     UnitOrder,
     BrokerConfig,
     CancelAllParams,
+    UnitCancelByOrderId,
 )
+
 
 async def main():
     """Main example function."""
@@ -32,7 +35,7 @@ async def main():
     
     # Create HTTP transport for testnet
     transport = HttpTransport(
-        HttpTransportOptions(is_testnet=False)
+        HttpTransportOptions(is_testnet=True)
     )
     
     # Create account from private key
@@ -61,7 +64,7 @@ async def main():
                         instrument_id=1,
                         side="b",  # buy
                         position_side="BOTH",
-                        price= str(current_price),  
+                        price= "65000",  
                         size="0.0005",
                         tif="GTC",
                         ro=False,
@@ -78,18 +81,29 @@ async def main():
         )
         print(f"Order result: {order_result}\n")
         
-        # Get open orders
+        # # Get open orders
         print("Fetching open orders...")
         open_orders = await info.open_orders(OpenOrdersParams(user=account.address))
         print(f"Open orders: {open_orders}\n")
-        
-        # Cancel all orders
-        print("Cancelling all orders...")
-        cancel_result = await exchange.cancel_all(
-            CancelAllParams(
-                expires_after=int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
+
+
+        # Cancel order by oid
+        print("Cancelling order by oid...")
+        cancel_result = await exchange.cancel_by_oid(
+            CancelByOidParams(
+                cancels=[UnitCancelByOrderId(oid=order_result["data"]["status"][0]["resting"]["order_id"], instrumentId=1)],
+                expires_after=int(time.time() * 1000) + 3600000,
             )
         )
+        print(f"Cancel result: {cancel_result}\n")
+        
+        # Cancel all orders
+        # print("Cancelling all orders...")
+        # cancel_result = await exchange.cancel_all(
+        #     CancelAllParams(
+        #         expires_after=int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
+        #     )
+        # )
         print(f"Cancel result: {cancel_result}\n")
         
     except Exception as e:

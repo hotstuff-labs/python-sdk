@@ -58,7 +58,7 @@ class PlaceOrderParams(BaseModel):
 class UnitCancelByOrderId(BaseModel):
     """Cancel by order ID unit."""
     oid: int = Field(..., description="Order ID")
-    instrument_id: int = Field(..., gt=0, description="Instrument ID")
+    instrumentId: int = Field(...,  gt=0, description="Instrument ID")
 
 
 class CancelByOidParams(BaseModel):
