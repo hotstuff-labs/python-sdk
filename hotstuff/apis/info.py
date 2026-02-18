@@ -154,6 +154,12 @@ class InfoClient:
         """Get order history."""
         request = {"method": "orderHistory", "params": params.model_dump(by_alias=True)}
         response = await self.transport.request("info", request, signal)
+        # API returns {"data": [...], "page", "limit", "total_count", ...}; map data -> orders
+        if isinstance(response, list):
+            response = {"orders": response}
+        elif isinstance(response, dict) and "data" in response and isinstance(response.get("data"), list):
+            response = {**response, "orders": response["data"]}
+            del response["data"]
         return AM.OrderHistoryResponse.model_validate(response)
     
     async def trade_history(
@@ -162,6 +168,12 @@ class InfoClient:
         """Get trade history (fills)."""
         request = {"method": "fills", "params": params.model_dump(by_alias=True)}
         response = await self.transport.request("info", request, signal)
+        # API returns {"data": [...], "page", "limit", "total_count", ...}; map data -> entries
+        if isinstance(response, list):
+            response = {"entries": response}
+        elif isinstance(response, dict) and "data" in response and isinstance(response.get("data"), list):
+            response = {**response, "entries": response["data"]}
+            del response["data"]
         return AM.TradeHistoryResponse.model_validate(response)
     
     async def funding_history(
@@ -170,6 +182,12 @@ class InfoClient:
         """Get funding history."""
         request = {"method": "fundingHistory", "params": params.model_dump()}
         response = await self.transport.request("info", request, signal)
+        # API returns {"data": [...], "page", "limit", "total_count", ...}; map data -> entries
+        if isinstance(response, list):
+            response = {"entries": response}
+        elif isinstance(response, dict) and "data" in response and isinstance(response.get("data"), list):
+            response = {**response, "entries": response["data"]}
+            del response["data"]
         return AM.FundingHistoryResponse.model_validate(response)
     
     async def transfer_history(

@@ -1,5 +1,5 @@
 """Account info method types."""
-from typing import List, Literal, Optional, Annotated
+from typing import Dict, List, Literal, Optional, Annotated
 from pydantic import BaseModel, Field, ConfigDict, field_validator, RootModel
 
 from hotstuff.utils.address import validate_ethereum_address
@@ -166,11 +166,24 @@ class UserFeeInfoResponse(BaseModel):
     """User fee info response."""
     model_config = ConfigDict(populate_by_name=True, extra='allow')
     
-    maker_fee: Optional[str] = Field(None, alias="makerFee")
-    taker_fee: Optional[str] = Field(None, alias="takerFee")
-    volume_tier: Optional[str] = Field(None, alias="volumeTier")
-    trading_volume_30d: Optional[str] = Field(None, alias="tradingVolume30d")
-    discount: Optional[str] = None
+    account: str
+    spot_volume_14d: Optional[str] = Field(None, alias="spotVolume14d")
+    spot_volume_30d: Optional[str] = Field(None, alias="spotVolume30d")
+    stable_spot_volume_14d: Optional[str] = Field(None, alias="stableSpotVolume14d")
+    stable_spot_volume_30d: Optional[str] = Field(None, alias="stableSpotVolume30d")
+    perp_volume_14d: Optional[str] = Field(None, alias="perpVolume14d")
+    perp_volume_30d: Optional[str] = Field(None, alias="perpVolume30d")
+    option_volume_14d: Optional[str] = Field(None, alias="optionVolume14d")
+    option_volume_30d: Optional[str] = Field(None, alias="optionVolume30d")
+    total_volume_threshold: Optional[int] = Field(None, alias="totalVolumeThreshold")
+    perp_maker_fee_rate: Optional[float] = Field(None, alias="perpMakerFeeRate")
+    perp_taker_fee_rate: Optional[float] = Field(None, alias="perpTakerFeeRate")
+    spot_maker_fee_rate: Optional[float] = Field(None, alias="spotMakerFeeRate")
+    spot_taker_fee_rate: Optional[float] = Field(None, alias="spotTakerFeeRate")
+    stable_spot_maker_fee_rate: Optional[float] = Field(None, alias="stableSpotMakerFeeRate")
+    stable_spot_taker_fee_rate: Optional[float] = Field(None, alias="stableSpotTakerFeeRate")
+    option_maker_fee_rate: Optional[float] = Field(None, alias="optionMakerFeeRate")
+    option_taker_fee_rate: Optional[float] = Field(None, alias="optionTakerFeeRate")
 
 
 # Account History Method
@@ -206,14 +219,43 @@ class OrderHistoryParams(BaseModel):
         return validate_ethereum_address(v)
 
 
+class OrderHistoryEntry(BaseModel):
+    """Single order history entry."""
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    order_id: Optional[int] = Field(None, alias="orderId")
+    oid: Optional[int] = None
+    user: Optional[str] = None
+    instrument_id: Optional[int] = Field(None, alias="instrumentId")
+    instrument: Optional[str] = None
+    side: Optional[Literal["s", "b"]] = None
+    price: Optional[str] = None
+    size: Optional[str] = None
+    state: Optional[str] = None
+    created_at: Optional[str] = Field(None, alias="createdAt")
+    timestamp: Optional[str] = None
+    cloid: Optional[str] = None
+    tif: Optional[str] = None
+    filled: Optional[str] = None
+    unfilled: Optional[str] = None
+
+
 class OrderHistoryResponse(BaseModel):
     """Order history response."""
-    pass 
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    orders: List[OrderHistoryEntry] = Field(default_factory=list, description="List of order history entries")
+    page: Optional[int] = None
+    limit: Optional[int] = None
+    total_count: Optional[int] = Field(None, alias="totalCount")
+    total_pages: Optional[int] = Field(None, alias="totalPages")
+    has_next: Optional[bool] = Field(None, alias="hasNext")
+    has_prev: Optional[bool] = Field(None, alias="hasPrev")
 
 
-# Trade History Method
+# Trade History Method (Fills)
 class TradeHistoryParams(BaseModel):
-    """Parameters for trade history query."""
+    """Parameters for trade history (fills) query."""
     model_config = ConfigDict(populate_by_name=True)
     
     user: str = Field(..., description="User address")
@@ -227,9 +269,46 @@ class TradeHistoryParams(BaseModel):
         return validate_ethereum_address(v)
 
 
+class TradeHistoryEntry(BaseModel):
+    """Single fill / trade history entry."""
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    instrument_id: int = Field(..., alias="instrumentId")
+    instrument: str
+    account: str
+    order_id: int = Field(..., alias="orderId")
+    cloid: Optional[str] = None
+    trade_id: int = Field(..., alias="tradeId")
+    side: Literal["b", "s"]
+    position_side: str = Field(..., alias="positionSide")
+    direction: Optional[str] = None  # e.g. "openLong", "closeLong", "openShort", "closeShort"
+    price: str
+    size: str
+    closed_pnl: Optional[str] = Field(None, alias="closedPnl")
+    start_size: Optional[str] = Field(None, alias="startSize")
+    start_price: Optional[str] = Field(None, alias="startPrice")
+    fee: Optional[str] = None
+    broker_fee: Optional[str] = Field(None, alias="brokerFee")
+    fee_token_id: Optional[int] = Field(None, alias="feeTokenId")
+    crossed: Optional[bool] = None
+    tx_hash: Optional[str] = Field(None, alias="txHash")
+    fill_type: Optional[int] = Field(None, alias="fillType")
+    notional_value: Optional[str] = Field(None, alias="notionalValue")
+    block_timestamp: Optional[str] = Field(None, alias="blockTimestamp")
+    # liquidation_info optional object when fill is from liquidation
+
+
 class TradeHistoryResponse(BaseModel):
-    """Trade history response."""
-    pass 
+    """Trade history (fills) response. API returns data in top-level 'data' key."""
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    entries: List[TradeHistoryEntry] = Field(default_factory=list, description="List of fill/trade entries")
+    page: Optional[int] = None
+    limit: Optional[int] = None
+    total_count: Optional[int] = Field(None, alias="totalCount")
+    total_pages: Optional[int] = Field(None, alias="totalPages")
+    has_next: Optional[bool] = Field(None, alias="hasNext")
+    has_prev: Optional[bool] = Field(None, alias="hasPrev")
 
 
 # Funding History Method
@@ -244,9 +323,31 @@ class FundingHistoryParams(BaseModel):
         return validate_ethereum_address(v)
 
 
+class FundingHistoryEntry(BaseModel):
+    """Single funding history entry."""
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    user: str
+    instrument_id: int = Field(..., alias="instrumentId")
+    settlement_currency: int = Field(..., alias="settlementCurrency")
+    funding_payment: str = Field(..., alias="fundingPayment")
+    funding_rate: str = Field(..., alias="fundingRate")
+    mark_price: str = Field(..., alias="markPrice")
+    size: str
+    timestamp: str
+
+
 class FundingHistoryResponse(BaseModel):
-    """Funding history response."""
-    pass 
+    """Funding history response. API returns data in top-level 'data' key."""
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    entries: List[FundingHistoryEntry] = Field(default_factory=list, description="List of funding history entries")
+    page: Optional[int] = None
+    limit: Optional[int] = None
+    total_count: Optional[int] = Field(None, alias="totalCount")
+    total_pages: Optional[int] = Field(None, alias="totalPages")
+    has_next: Optional[bool] = Field(None, alias="hasNext")
+    has_prev: Optional[bool] = Field(None, alias="hasPrev")
 
 
 # Transfer History Method
@@ -281,7 +382,14 @@ class InstrumentLeverageParams(BaseModel):
 
 class InstrumentLeverageResponse(BaseModel):
     """Instrument leverage response."""
-    pass 
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    address: str
+    instrument_id: int = Field(..., alias="instrumentId")
+    instrument: str
+    margin_type: str = Field(..., alias="marginType")  # e.g. "isolated", "cross"
+    leverage: str
+    updated_at: int = Field(..., alias="updatedAt")
 
 
 # Referral Info Method
@@ -368,8 +476,13 @@ class UserBalanceInfoParams(BaseModel):
 
 
 class UserBalanceInfoResponse(BaseModel):
-    """User balance info response."""
-    pass 
+    """User balance info response.
+    Keys are collateral currency IDs (e.g. "1"), values are balance strings.
+    """
+    model_config = ConfigDict(extra='allow')
+    
+    spot: Dict[str, str] = Field(default_factory=dict, description="Spot balances by collateral currency ID")
+    derivative: Dict[str, str] = Field(default_factory=dict, description="Derivative balances by collateral currency ID")
 
 
 # Account Info Method
