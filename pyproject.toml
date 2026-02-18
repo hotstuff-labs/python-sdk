@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hotstuff-python-sdk"
-version = "0.0.1-beta.9"
+version = "0.0.1-beta.10"
 description = "Python SDK for interacting with Hotstuff L1"
 authors = ["hotstuff"]
 license = "MIT"

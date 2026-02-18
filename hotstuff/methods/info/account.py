@@ -1,5 +1,5 @@
 """Account info method types."""
-from typing import Dict, List, Literal, Optional, Annotated
+from typing import Any, Dict, List, Literal, Optional, Annotated
 from pydantic import BaseModel, Field, ConfigDict, field_validator, RootModel
 
 from hotstuff.utils.address import validate_ethereum_address
@@ -120,11 +120,35 @@ class AccountSummaryParams(BaseModel):
 
 class AccountSummaryResponse(BaseModel):
     """Account summary response."""
-    total_balance: str
-    total_equity: str
-    total_free: str
-    total_margin: str
-    total_profit_loss: str
+    model_config = ConfigDict(populate_by_name=True, extra='allow')
+    
+    address: str
+    margin_mode: Optional[str] = Field(None, alias="marginMode")  # e.g. "cross", "isolated"
+    multi_asset_mode: Optional[bool] = Field(None, alias="multiAssetMode")
+    hedge_mode: Optional[bool] = Field(None, alias="hedgeMode")
+    spot_collateral: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="spotCollateral")
+    collateral: Optional[Dict[str, Any]] = Field(default_factory=dict)  # e.g. {"USDC": {"balance", "withdrawable_balance"}}
+    vault_balances: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="vaultBalances")
+    staked_collateral: Optional[float] = Field(None, alias="stakedCollateral")
+    perp_positions: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="perpPositions")  # instrument -> position details
+    initial_margin_utilization: Optional[float] = Field(None, alias="initialMarginUtilization")
+    maintenance_margin_utilization: Optional[float] = Field(None, alias="maintenanceMarginUtilization")
+    upnl: Optional[float] = None
+    total_account_equity: Optional[float] = Field(None, alias="totalAccountEquity")
+    margin_balance: Optional[float] = Field(None, alias="marginBalance")
+    initial_margin: Optional[float] = Field(None, alias="initialMargin")
+    maintenance_margin: Optional[float] = Field(None, alias="maintenanceMargin")
+    total_volume: Optional[float] = Field(None, alias="totalVolume")
+    total_pnl: Optional[float] = Field(None, alias="totalPnl")
+    available_balance: Optional[float] = Field(None, alias="availableBalance")
+    withdrawable_balance_notional: Optional[float] = Field(None, alias="withdrawableBalanceNotional")
+    transfer_margin_req: Optional[float] = Field(None, alias="transferMarginReq")
+    max_drawdown: Optional[float] = Field(None, alias="maxDrawdown")
+    vault_summary: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="vaultSummary")
+    spot_account_equity: Optional[float] = Field(None, alias="spotAccountEquity")
+    derivative_account_equity: Optional[float] = Field(None, alias="derivativeAccountEquity")
+    spot_volume: Optional[float] = Field(None, alias="spotVolume")
+    perp_volume: Optional[float] = Field(None, alias="perpVolume")
 
 
 # Referral Summary Method

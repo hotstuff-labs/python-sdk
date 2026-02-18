@@ -8,7 +8,7 @@ from hotstuff import (
 )
 
 from hotstuff.methods.info.market import InstrumentsParams, TickerParams, OrderbookParams, TradesParams, SupportedCollateralParams
-from hotstuff.methods.info.account import InstrumentLeverageParams, UserBalanceInfoParams, UserFeeInfoParams
+from hotstuff.methods.info.account import InstrumentLeverageParams, UserBalanceInfoParams, UserFeeInfoParams, AccountSummaryParams
 
 async def main():
     """Main example function."""
@@ -21,35 +21,35 @@ async def main():
     info = InfoClient(transport=transport)
     
     try:
-        # # Get all instruments
-        # print("Fetching instruments...")
-        # instruments = await info.instruments(InstrumentsParams(type="all"))
-        # print(f"Instruments: {instruments}\n")
+        # Get all instruments
+        print("Fetching instruments...")
+        instruments = await info.instruments(InstrumentsParams(type="all"))
+        print(f"Instruments: {instruments}\n")
         
         # Get supported collateral currencies
-        # print("Fetching supported collateral currencies...")
-        # supported_collateral = await info.supported_collateral(SupportedCollateralParams())
-        # print(f"Supported collateral currencies: {supported_collateral}\n")
+        print("Fetching supported collateral currencies...")
+        supported_collateral = await info.supported_collateral(SupportedCollateralParams())
+        print(f"Supported collateral currencies: {supported_collateral}\n")
         
-        # # Get ticker for BTC-PERP
-        # print("Fetching BTC-PERP ticker...")
-        # ticker = await info.ticker(TickerParams(symbol="BTC-PERP"))
-        # print(f"BTC-PERP Ticker: {ticker}\n")
+        # Get ticker for BTC-PERP
+        print("Fetching BTC-PERP ticker...")
+        ticker = await info.ticker(TickerParams(symbol="BTC-PERP"))
+        print(f"BTC-PERP Ticker: {ticker}\n")
         
-        # # Get orderbook
-        # print("Fetching orderbook...")
-        # orderbook = await info.orderbook(OrderbookParams(symbol="BTC-PERP", depth=10))
-        # print(f"Orderbook: {orderbook}\n")
+        # Get orderbook
+        print("Fetching orderbook...")
+        orderbook = await info.orderbook(OrderbookParams(symbol="BTC-PERP", depth=10))
+        print(f"Orderbook: {orderbook}\n")
         
-        # # Get recent trades
-        # print("Fetching recent trades...")
-        # trades = await info.trades(TradesParams(symbol="BTC-PERP", limit=5))
-        # print(f"Recent trades: {trades}\n")
+        # Get recent trades
+        print("Fetching recent trades...")
+        trades = await info.trades(TradesParams(symbol="BTC-PERP", limit=5))
+        print(f"Recent trades: {trades}\n")
         
         # Get instrument leverage for a user for a specific symbol
-        # print("Fetching instrument leverage...")
-        # leverage = await info.instrument_leverage(InstrumentLeverageParams(user="0x3096E206da35141D5B23aE16C42C070f7df082a8", symbol="BTC-PERP"))
-        # print(f"Instrument leverage: {leverage}\n")
+        print("Fetching instrument leverage...")
+        leverage = await info.instrument_leverage(InstrumentLeverageParams(user="0x3096E206da35141D5B23aE16C42C070f7df082a8", symbol="BTC-PERP"))
+        print(f"Instrument leverage: {leverage}\n")
         
         # Get account balance info
         print("Fetching account balance info...")
@@ -60,6 +60,11 @@ async def main():
         print("Fetching user fee info...")
         user_fee = await info.user_fee_info(UserFeeInfoParams(user="0x3096E206da35141D5B23aE16C42C070f7df082a8"))
         print(f"User fee: {user_fee}\n")
+        
+        # Get account summary info
+        print("Fetching account summary info...")
+        account_summary = await info.account_summary(AccountSummaryParams(user="0x3096E206da35141D5B23aE16C42C070f7df082a8"))
+        print(f"Account summary: {account_summary}\n")
         
     finally:
         # Clean up
