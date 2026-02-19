@@ -55,7 +55,20 @@ from hotstuff.methods.exchange.collateral import (
     AccountInternalBalanceTransferRequestParams,
 )
 
-from hotstuff.methods.exchange.account import (AddAgentParams, RevokeAgentParams, UpdatePerpInstrumentLeverageParams, ApproveBrokerFeeParams, CreateReferralCodeParams, SetReferrerParams, ClaimReferralRewardsParams)
+from hotstuff.methods.exchange.account import (
+    AddAgentParams, 
+    RevokeAgentParams,
+     UpdatePerpInstrumentLeverageParams, 
+     ApproveBrokerFeeParams, 
+     CreateReferralCodeParams, 
+     SetReferrerParams, 
+     ClaimReferralRewardsParams,
+)
+
+from hotstuff.methods.exchange.vault import (
+    DepositToVaultParams,
+    RedeemFromVaultParams,
+)
 
 
 # Market data types (clean imports without 'global' keyword)
@@ -125,6 +138,8 @@ __all__ = [
     "AccountSpotBalanceTransferRequestParams",
     "AccountDerivativeBalanceTransferRequestParams",
     "AccountInternalBalanceTransferRequestParams",
+    "DepositToVaultParams",
+    "RedeemFromVaultParams",
     # Market Data Types
     "TickerParams",
     "Ticker",
