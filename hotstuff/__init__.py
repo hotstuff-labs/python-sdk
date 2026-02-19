@@ -40,6 +40,8 @@ from hotstuff.methods.exchange.trading import (
     UnitOrder,
     BrokerConfig,
     PlaceOrderParams,
+    UnitCancelByOrderId,
+    UnitCancelByClOrderId,
     CancelByOidParams,
     CancelByCloidParams,
     CancelAllParams,
@@ -107,7 +109,8 @@ __all__ = [
     "CancelByOidParams",
     "CancelByCloidParams",
     "CancelAllParams",
-    "AddAgentParams",
+    "UnitCancelByOrderId",
+    "UnitCancelByClOrderId",
     # Market Data Types
     "TickerParams",
     "Ticker",
