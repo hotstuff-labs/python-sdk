@@ -18,7 +18,7 @@ from hotstuff.types import (
 )
 
 # Utils
-from hotstuff.utils import NonceManager, sign_action, EXCHANGE_OP_CODES
+from hotstuff.utils import NonceManager, sign_action
 
 # Exceptions
 from hotstuff.exceptions import (
