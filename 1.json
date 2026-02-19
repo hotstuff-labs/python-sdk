@@ -1,0 +1,28 @@
+{
+    "action": {
+        "data": {
+            "orders": [
+                {
+                    "instrumentId": 1,
+                    "side": "b",
+                    "positionSide": "BOTH",
+                    "price": "68800",
+                    "size": "0.03105",
+                    "tif": "GTC",
+                    "ro": false,
+                    "po": false,
+                    "cloid": "8349ce3f-1dfc-4e53-aa94-4d9b8173b99c",
+                    "triggerPx": "",
+                    "isMarket": false,
+                    "tpsl": "",
+                    "grouping": ""
+                }
+            ],
+            "expiresAfter": 1771516628698,
+            "nonce": 1771513028698
+        },
+        "type": "1301"
+    },
+    "signature": "0xdce0aa22c305a54c6ada674c6fcf55907f2525fe597982c2595427a0eba9d7807a4bc04761686cd00783c7471b63422f72a86a8209d4a5b3200694083fa28c7f1b",
+    "nonce": 1771513028698
+}

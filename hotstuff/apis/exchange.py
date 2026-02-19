@@ -228,8 +228,8 @@ class ExchangeClient:
         params_dict = self._to_api_dict(params, exclude={"nonce"})
         ordered_params = {
             "orders": params_dict["orders"],
-            "brokerConfig": params_dict.get("broker_config"),
-            "expiresAfter": params_dict["expires_after"],
+            "brokerConfig": params_dict.get("brokerConfig"),
+            "expiresAfter": params_dict["expiresAfter"],
         }
         if ordered_params["brokerConfig"] is None:
             ordered_params.pop("brokerConfig")

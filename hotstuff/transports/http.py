@@ -96,7 +96,9 @@ class HttpTransport:
                 "Content-Type": "application/json",
                 **self.headers,
             }
-            
+
+            print(f"Payload: {payload}")
+
             # Get session
             session = self._get_session()
             

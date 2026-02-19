@@ -1,7 +1,7 @@
 """Trading exchange method types."""
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional
-
+from typing import Any, Dict, List, Literal, Optional
+import time
 from hotstuff.utils.address import validate_ethereum_address
 
 
@@ -9,24 +9,52 @@ from hotstuff.utils.address import validate_ethereum_address
 @dataclass
 class UnitOrder:
     """Single order unit."""
-    instrument_id: int
+    instrumentId: int
     side: Literal["b", "s"]
-    position_side: Literal["LONG", "SHORT", "BOTH"]
+    positionSide: Literal["LONG", "SHORT", "BOTH"]
     price: str
     size: str
     tif: Literal["GTC", "IOC", "FOK"]
     ro: bool
     po: bool
     cloid: Optional[str] = None
-    trigger_px: Optional[str] = None
-    is_market: Optional[bool] = None
+    triggerPx: Optional[str] = None
+    isMarket: Optional[bool] = None
     tpsl: Optional[Literal["tp", "sl", ""]] = None
     grouping: Optional[Literal["position", "normal", ""]] = None
     
     def __post_init__(self):
         """Validate instrument_id."""
-        if self.instrument_id <= 0:
-            raise ValueError("instrument_id must be greater than 0")
+        if self.instrumentId <= 0:
+            raise ValueError("instrumentId must be greater than 0")
+        if self.cloid is None:
+            self.cloid = generate_cloid()
+        if self.triggerPx is None:
+            self.triggerPx = ""
+        if self.isMarket is None:
+            self.isMarket = False
+        if self.tpsl is None:
+            self.tpsl = ""
+        if self.grouping is None:
+            self.grouping = ""
+    
+    def to_api_dict(self) -> Dict[str, Any]:
+        """Convert to API dict."""
+        return {
+            "instrumentId": self.instrumentId,
+            "side": self.side,
+            "positionSide": self.positionSide,
+            "price": self.price,
+            "size": self.size,
+            "tif": self.tif,
+            "ro": self.ro,
+            "po": self.po,
+            "cloid": self.cloid,
+            "triggerPx": self.triggerPx,
+            "isMarket": self.isMarket,
+            "tpsl": self.tpsl,
+            "grouping": self.grouping,
+        }
 
 
 @dataclass
@@ -39,15 +67,29 @@ class BrokerConfig:
         """Validate and checksum the broker address."""
         if self.broker != "":
             self.broker = validate_ethereum_address(self.broker)
+    
+    def to_api_dict(self) -> Dict[str, Any]:
+        """Convert to API dict."""
+        return {"broker": self.broker, "fee": self.fee}
 
 
 @dataclass
 class PlaceOrderParams:
     """Parameters for placing an order."""
     orders: List[UnitOrder]
-    expires_after: int
-    broker_config: Optional[BrokerConfig] = None
+    expiresAfter: int
+    brokerConfig: Optional[BrokerConfig] = None
     nonce: Optional[int] = None
+    
+    def to_api_dict(self) -> Dict[str, Any]:
+        """Convert to API dict, omitting None values."""
+        result = {
+            "orders": [order.to_api_dict() for order in self.orders],
+            "expiresAfter": self.expiresAfter,
+        }
+        if self.brokerConfig is not None:
+            result["brokerConfig"] = self.brokerConfig.to_api_dict()
+        return result
 
 
 # Cancel By Oid Method
@@ -67,7 +109,7 @@ class UnitCancelByOrderId:
 class CancelByOidParams:
     """Parameters for cancelling by order ID."""
     cancels: List[UnitCancelByOrderId]
-    expires_after: int
+    expiresAfter: int
     nonce: Optional[int] = None
 
 
@@ -76,11 +118,11 @@ class CancelByOidParams:
 class UnitCancelByClOrderId:
     """Cancel by client order ID unit."""
     cloid: str
-    instrument_id: int
+    instrumentId: int
     
     def __post_init__(self):
         """Validate instrument_id."""
-        if self.instrument_id <= 0:
+        if self.instrumentId <= 0:
             raise ValueError("instrument_id must be greater than 0")
 
 
@@ -88,7 +130,7 @@ class UnitCancelByClOrderId:
 class CancelByCloidParams:
     """Parameters for cancelling by client order ID."""
     cancels: List[UnitCancelByClOrderId]
-    expires_after: int
+    expiresAfter: int
     nonce: Optional[int] = None
 
 
@@ -96,5 +138,9 @@ class CancelByCloidParams:
 @dataclass
 class CancelAllParams:
     """Parameters for cancelling all orders."""
-    expires_after: int
+    expiresAfter: int
     nonce: Optional[int] = None
+
+
+def generate_cloid():
+    return f"cloid-{int(time.time())}"
