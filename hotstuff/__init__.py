@@ -46,6 +46,15 @@ from hotstuff.methods.exchange.trading import (
     CancelByCloidParams,
     CancelAllParams,
 )
+
+from hotstuff.methods.exchange.collateral import (
+    AccountSpotWithdrawRequestParams,
+    AccountDerivativeWithdrawRequestParams,
+    AccountSpotBalanceTransferRequestParams,
+    AccountDerivativeBalanceTransferRequestParams,
+    AccountInternalBalanceTransferRequestParams,
+)
+
 from hotstuff.methods.exchange.account import (AddAgentParams, RevokeAgentParams, UpdatePerpInstrumentLeverageParams, ApproveBrokerFeeParams, CreateReferralCodeParams, SetReferrerParams, ClaimReferralRewardsParams)
 
 
@@ -111,6 +120,11 @@ __all__ = [
     "CancelAllParams",
     "UnitCancelByOrderId",
     "UnitCancelByClOrderId",
+    "AccountSpotWithdrawRequestParams",
+    "AccountDerivativeWithdrawRequestParams",
+    "AccountSpotBalanceTransferRequestParams",
+    "AccountDerivativeBalanceTransferRequestParams",
+    "AccountInternalBalanceTransferRequestParams",
     # Market Data Types
     "TickerParams",
     "Ticker",

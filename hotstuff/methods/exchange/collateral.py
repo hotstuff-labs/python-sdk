@@ -9,9 +9,9 @@ from hotstuff.utils.address import validate_ethereum_address
 @dataclass
 class AccountSpotWithdrawRequestParams:
     """Parameters for account spot withdraw request."""
-    collateral_id: int
+    collateralId: int
     amount: str
-    chain_id: int
+    chainId: int
     nonce: Optional[int] = None
 
 
@@ -19,9 +19,9 @@ class AccountSpotWithdrawRequestParams:
 @dataclass
 class AccountDerivativeWithdrawRequestParams:
     """Parameters for account derivative withdraw request."""
-    collateral_id: int
+    collateralId: int
     amount: str
-    chain_id: int
+    chainId: int
     nonce: Optional[int] = None
 
 
@@ -29,7 +29,7 @@ class AccountDerivativeWithdrawRequestParams:
 @dataclass
 class AccountSpotBalanceTransferRequestParams:
     """Parameters for account spot balance transfer request."""
-    collateral_id: int
+    collateralId: int
     amount: str
     destination: str
     nonce: Optional[int] = None
@@ -43,7 +43,7 @@ class AccountSpotBalanceTransferRequestParams:
 @dataclass
 class AccountDerivativeBalanceTransferRequestParams:
     """Parameters for account derivative balance transfer request."""
-    collateral_id: int
+    collateralId: int
     amount: str
     destination: str
     nonce: Optional[int] = None
@@ -57,7 +57,7 @@ class AccountDerivativeBalanceTransferRequestParams:
 @dataclass
 class AccountInternalBalanceTransferRequestParams:
     """Parameters for account internal balance transfer request."""
-    collateral_id: int
+    collateralId: int
     amount: str
-    to_derivatives_account: bool
+    toDerivativesAccount: bool
     nonce: Optional[int] = None
