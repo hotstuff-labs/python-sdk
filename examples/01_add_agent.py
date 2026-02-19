@@ -1,4 +1,4 @@
-"""Example: Adding an agent with ExchangeClient."""
+"""Example: Adding an agent"""
 import time
 import os
 import json

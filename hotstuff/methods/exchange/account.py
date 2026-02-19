@@ -43,8 +43,8 @@ class RevokeAgentParams:
 @dataclass
 class UpdatePerpInstrumentLeverageParams:
     """Parameters for updating perp instrument leverage."""
-    instrument_id: int
-    leverage: int
+    instrumentId: int
+    leverage: str
     nonce: Optional[int] = None
 
 

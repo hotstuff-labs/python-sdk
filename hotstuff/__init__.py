@@ -44,7 +44,8 @@ from hotstuff.methods.exchange.trading import (
     CancelByCloidParams,
     CancelAllParams,
 )
-from hotstuff.methods.exchange.account import AddAgentParams
+from hotstuff.methods.exchange.account import (AddAgentParams, RevokeAgentParams, UpdatePerpInstrumentLeverageParams, ApproveBrokerFeeParams, CreateReferralCodeParams, SetReferrerParams, ClaimReferralRewardsParams)
+
 
 # Market data types (clean imports without 'global' keyword)
 from hotstuff.methods.info.market import (
@@ -93,6 +94,13 @@ __all__ = [
     "HotstuffWebSocketError",
     "HotstuffSubscriptionError",
     # Exchange Method Types
+    "AddAgentParams",
+    "RevokeAgentParams",
+    "UpdatePerpInstrumentLeverageParams",
+    "ApproveBrokerFeeParams",
+    "CreateReferralCodeParams",
+    "SetReferrerParams",
+    "ClaimReferralRewardsParams",
     "UnitOrder",
     "BrokerConfig",
     "PlaceOrderParams",
