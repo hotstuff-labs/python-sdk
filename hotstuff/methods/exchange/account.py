@@ -81,6 +81,6 @@ class SetReferrerParams:
 @dataclass
 class ClaimReferralRewardsParams:
     """Parameters for claiming referral rewards."""
-    collateral_id: int
+    collateralId: int
     spot: bool
     nonce: Optional[int] = None
