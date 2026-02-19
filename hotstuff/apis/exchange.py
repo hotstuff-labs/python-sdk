@@ -225,15 +225,12 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        # Convert to dict with proper aliases, ensuring nested models are converted
         params_dict = self._to_api_dict(params, exclude={"nonce"})
-        # Reorder dict to match original SDK order for consistent msgpack encoding
         ordered_params = {
             "orders": params_dict["orders"],
             "brokerConfig": params_dict.get("broker_config"),
             "expiresAfter": params_dict["expires_after"],
         }
-        # Remove None brokerConfig if not provided
         if ordered_params["brokerConfig"] is None:
             ordered_params.pop("brokerConfig")
         return self._execute_action(
