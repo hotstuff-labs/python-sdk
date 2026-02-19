@@ -1,4 +1,4 @@
-"""Example: Instrument leverage with ExchangeClient."""
+"""Example: Update instrument leverage."""
 import json
 import example_utils
 from hotstuff import UpdatePerpInstrumentLeverageParams

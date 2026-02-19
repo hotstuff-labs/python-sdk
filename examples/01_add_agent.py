@@ -1,4 +1,4 @@
-"""Example: Adding an agent"""
+"""Example: Add Agent"""
 import time
 import os
 import json

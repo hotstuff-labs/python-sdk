@@ -53,7 +53,7 @@ class UpdatePerpInstrumentLeverageParams:
 class ApproveBrokerFeeParams:
     """Parameters for approving broker fee."""
     broker: str
-    max_fee_rate: str
+    maxFeeRate: str
     nonce: Optional[int] = None
     
     def __post_init__(self):
