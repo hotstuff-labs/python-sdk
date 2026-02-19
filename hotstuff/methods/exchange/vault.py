@@ -1,37 +1,31 @@
 """Vault exchange method types."""
+from dataclasses import dataclass
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from hotstuff.utils.address import validate_ethereum_address
 
 
 # Deposit To Vault Method
-class DepositToVaultParams(BaseModel):
+@dataclass
+class DepositToVaultParams:
     """Parameters for depositing to a vault."""
-    vault_address: str = Field(..., alias="vaultAddress", description="Vault address")
-    amount: str = Field(..., description="Deposit amount")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    @field_validator('vault_address', mode='before')
-    @classmethod
-    def validate_vault_address(cls, v: str) -> str:
+    vault_address: str
+    amount: str
+    nonce: Optional[int] = None
+    
+    def __post_init__(self):
         """Validate and checksum the vault address."""
-        return validate_ethereum_address(v)
+        self.vault_address = validate_ethereum_address(self.vault_address)
 
 
 # Redeem From Vault Method
-class RedeemFromVaultParams(BaseModel):
+@dataclass
+class RedeemFromVaultParams:
     """Parameters for redeeming from a vault."""
-    vault_address: str = Field(..., alias="vaultAddress", description="Vault address")
-    shares: str = Field(..., description="Number of shares to redeem")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    @field_validator('vault_address', mode='before')
-    @classmethod
-    def validate_vault_address(cls, v: str) -> str:
+    vault_address: str
+    shares: str
+    nonce: Optional[int] = None
+    
+    def __post_init__(self):
         """Validate and checksum the vault address."""
-        return validate_ethereum_address(v)
+        self.vault_address = validate_ethereum_address(self.vault_address)

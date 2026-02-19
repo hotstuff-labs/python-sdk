@@ -1,5 +1,6 @@
 """Subscription API client for real-time data."""
 from typing import Callable, Dict, Any
+from dataclasses import asdict
 
 from hotstuff.methods.subscription import channels as SM
 
@@ -16,9 +17,13 @@ class SubscriptionClient:
         """
         self.transport = transport
     
+    def _to_dict(self, obj) -> dict:
+        """Convert dataclass to dict."""
+        return asdict(obj)
+    
     # Market Subscriptions
     
-    async def ticker(
+    def ticker(
         self,
         params: SM.TickerSubscriptionParams,
         listener: Callable
@@ -33,9 +38,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("ticker", params.model_dump(), listener)
+        return self.transport.subscribe("ticker", self._to_dict(params), listener)
     
-    async def mids(
+    def mids(
         self,
         params: SM.MidsSubscriptionParams,
         listener: Callable
@@ -50,9 +55,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("mids", params.model_dump(), listener)
+        return self.transport.subscribe("mids", self._to_dict(params), listener)
     
-    async def bbo(
+    def bbo(
         self,
         params: SM.BBOSubscriptionParams,
         listener: Callable
@@ -67,9 +72,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("bbo", params.model_dump(), listener)
+        return self.transport.subscribe("bbo", self._to_dict(params), listener)
     
-    async def orderbook(
+    def orderbook(
         self,
         params: SM.OrderbookSubscriptionParams,
         listener: Callable
@@ -85,11 +90,11 @@ class SubscriptionClient:
             Subscription object with unsubscribe method
         """
         # Convert to format expected by API (both instrumentId and symbol)
-        params_dict = params.model_dump()
+        params_dict = self._to_dict(params)
         params_dict["symbol"] = params_dict["instrument_id"]
-        return await self.transport.subscribe("orderbook", params_dict, listener)
+        return self.transport.subscribe("orderbook", params_dict, listener)
     
-    async def trade(
+    def trade(
         self,
         params: SM.TradeSubscriptionParams,
         listener: Callable
@@ -105,11 +110,11 @@ class SubscriptionClient:
             Subscription object with unsubscribe method
         """
         # Convert to format expected by API (both instrumentId and symbol)
-        params_dict = params.model_dump()
+        params_dict = self._to_dict(params)
         params_dict["symbol"] = params_dict["instrument_id"]
-        return await self.transport.subscribe("trade", params_dict, listener)
+        return self.transport.subscribe("trade", params_dict, listener)
     
-    async def index(
+    def index(
         self,
         listener: Callable
     ) -> Dict[str, Any]:
@@ -122,9 +127,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("index", {}, listener)
+        return self.transport.subscribe("index", {}, listener)
     
-    async def chart(
+    def chart(
         self,
         params: SM.ChartSubscriptionParams,
         listener: Callable
@@ -139,11 +144,11 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("chart", params.model_dump(), listener)
+        return self.transport.subscribe("chart", self._to_dict(params), listener)
     
     # Account Subscriptions
     
-    async def account_order_updates(
+    def account_order_updates(
         self,
         params: SM.AccountOrderUpdatesParams,
         listener: Callable
@@ -158,9 +163,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("accountOrderUpdates", params.model_dump(), listener)
+        return self.transport.subscribe("accountOrderUpdates", self._to_dict(params), listener)
     
-    async def account_balance_updates(
+    def account_balance_updates(
         self,
         params: SM.AccountBalanceUpdatesParams,
         listener: Callable
@@ -175,9 +180,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("accountBalanceUpdates", params.model_dump(), listener)
+        return self.transport.subscribe("accountBalanceUpdates", self._to_dict(params), listener)
     
-    async def positions(
+    def positions(
         self,
         params: SM.PositionsSubscriptionParams,
         listener: Callable
@@ -192,9 +197,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("positions", params.model_dump(), listener)
+        return self.transport.subscribe("positions", self._to_dict(params), listener)
     
-    async def fills(
+    def fills(
         self,
         params: SM.FillsSubscriptionParams,
         listener: Callable
@@ -209,9 +214,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("fills", params.model_dump(), listener)
+        return self.transport.subscribe("fills", self._to_dict(params), listener)
     
-    async def account_summary(
+    def account_summary(
         self,
         params: SM.AccountSummarySubscriptionParams,
         listener: Callable
@@ -226,11 +231,11 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("accountSummary", params.model_dump(), listener)
+        return self.transport.subscribe("accountSummary", self._to_dict(params), listener)
     
     # Explorer Subscriptions
     
-    async def blocks(
+    def blocks(
         self,
         params: SM.BlocksSubscriptionParams,
         listener: Callable
@@ -245,9 +250,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("blocks", params.model_dump(), listener)
+        return self.transport.subscribe("blocks", self._to_dict(params), listener)
     
-    async def transactions(
+    def transactions(
         self,
         params: SM.TransactionsSubscriptionParams,
         listener: Callable
@@ -262,4 +267,4 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return await self.transport.subscribe("transactions", params.model_dump(), listener)
+        return self.transport.subscribe("transactions", self._to_dict(params), listener)

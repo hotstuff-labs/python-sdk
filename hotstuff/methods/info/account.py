@@ -1,39 +1,26 @@
 """Account info method types."""
-from typing import Any, Dict, List, Literal, Optional, Annotated
-from pydantic import BaseModel, Field, ConfigDict, field_validator, RootModel
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Literal, Optional
 
 from hotstuff.utils.address import validate_ethereum_address
 
 
-# Type alias for validated Ethereum addresses (similar to viem's Address type)
-EthereumAddress = Annotated[
-    str,
-    Field(
-        ...,
-        description="Ethereum address (validated and checksummed)",
-        examples=["0x1234567890123456789012345678901234567890"],
-    ),
-]
-
-
 # Open Orders Method
-class OpenOrdersParams(BaseModel):
+@dataclass
+class OpenOrdersParams:
     """Parameters for open orders query."""
-    user: str = Field(..., description="User address")
-    page: Optional[int] = Field(None, description="Page number")
-    limit: Optional[int] = Field(None, description="Number of orders per page")
+    user: str
+    page: Optional[int] = None
+    limit: Optional[int] = None
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class OpenOrder(BaseModel):
+@dataclass
+class OpenOrder:
     """Open order information."""
-    model_config = ConfigDict(extra='allow')
-    
     order_id: int
     user: str
     instrument_id: int
@@ -45,61 +32,58 @@ class OpenOrder(BaseModel):
     state: Literal["open", "filled", "cancelled", "triggered"]
     cloid: str
     tif: Literal["GTC", "IOC", "FOK"]
+    post_only: bool
+    reduce_only: bool
+    timestamp: str
     tpsl: Optional[str] = None  # Can be "tp", "sl", or ""
     trigger_px: Optional[str] = None
     trigger_price: Optional[str] = None  # Alternative field name
-    post_only: bool
-    reduce_only: bool
     is_market: Optional[bool] = None  # Optional market order flag
     grouping: Optional[str] = None  # Optional grouping
-    timestamp: str
 
 
-class OpenOrdersResponse(BaseModel):
+@dataclass
+class OpenOrdersResponse:
     """Open orders response."""
-    model_config = ConfigDict(extra='allow')
-    
-    orders: List[OpenOrder] = Field(default_factory=list, description="List of open orders")
+    orders: List[OpenOrder] = field(default_factory=list)
     # Pagination fields (optional)
     page: Optional[int] = None
     limit: Optional[int] = None
-    total_count: Optional[int] = Field(None, alias="totalCount")
-    total_pages: Optional[int] = Field(None, alias="totalPages")
-    has_next: Optional[bool] = Field(None, alias="hasNext")
-    has_prev: Optional[bool] = Field(None, alias="hasPrev")
+    total_count: Optional[int] = None
+    total_pages: Optional[int] = None
+    has_next: Optional[bool] = None
+    has_prev: Optional[bool] = None
 
 
 # Positions Method
-class PositionsParams(BaseModel):
+@dataclass
+class PositionsParams:
     """Parameters for positions query."""
-    user: str = Field(..., description="User address")
-    instrument: Optional[str] = Field(None, description="Filter by instrument")
-    
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
-        """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
-
-
-class Position(BaseModel):
-    """Individual position information."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
     user: str
-    instrument_id: int = Field(alias="instrumentId")
+    instrument: Optional[str] = None
+    
+    def __post_init__(self):
+        """Validate and checksum the user address."""
+        self.user = validate_ethereum_address(self.user)
+
+
+@dataclass
+class Position:
+    """Individual position information."""
+    user: str
+    instrument_id: int
     instrument: str
     side: Literal["LONG", "SHORT"]
     size: str
-    entry_price: str = Field(alias="entryPrice")
-    mark_price: Optional[str] = Field(None, alias="markPrice")
+    entry_price: str
     margin: str
-    unrealized_pnl: str = Field(alias="unrealizedPnl")
-    realized_pnl: Optional[str] = Field(None, alias="realizedPnl")
-    liquidation_price: Optional[str] = Field(None, alias="liquidationPrice")
+    unrealized_pnl: str
+    mark_price: Optional[str] = None
+    realized_pnl: Optional[str] = None
+    liquidation_price: Optional[str] = None
     leverage: Optional[str] = None
-    margin_type: Optional[str] = Field(None, alias="marginType")
-    updated_at: Optional[int] = Field(None, alias="updatedAt")
+    margin_type: Optional[str] = None
+    updated_at: Optional[int] = None
 
 
 # Note: positions endpoint returns List[Position] directly, not wrapped in PositionsResponse
@@ -107,156 +91,146 @@ PositionsResponse = List[Position]
 
 
 # Account Summary Method
-class AccountSummaryParams(BaseModel):
+@dataclass
+class AccountSummaryParams:
     """Parameters for account summary query."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class AccountSummaryResponse(BaseModel):
+@dataclass
+class AccountSummaryResponse:
     """Account summary response."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
     address: str
-    margin_mode: Optional[str] = Field(None, alias="marginMode")  # e.g. "cross", "isolated"
-    multi_asset_mode: Optional[bool] = Field(None, alias="multiAssetMode")
-    hedge_mode: Optional[bool] = Field(None, alias="hedgeMode")
-    spot_collateral: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="spotCollateral")
-    collateral: Optional[Dict[str, Any]] = Field(default_factory=dict)  # e.g. {"USDC": {"balance", "withdrawable_balance"}}
-    vault_balances: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="vaultBalances")
-    staked_collateral: Optional[float] = Field(None, alias="stakedCollateral")
-    perp_positions: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="perpPositions")  # instrument -> position details
-    initial_margin_utilization: Optional[float] = Field(None, alias="initialMarginUtilization")
-    maintenance_margin_utilization: Optional[float] = Field(None, alias="maintenanceMarginUtilization")
+    margin_mode: Optional[str] = None  # e.g. "cross", "isolated"
+    multi_asset_mode: Optional[bool] = None
+    hedge_mode: Optional[bool] = None
+    spot_collateral: Optional[Dict[str, Any]] = field(default_factory=dict)
+    collateral: Optional[Dict[str, Any]] = field(default_factory=dict)  # e.g. {"USDC": {"balance", "withdrawable_balance"}}
+    vault_balances: Optional[Dict[str, Any]] = field(default_factory=dict)
+    staked_collateral: Optional[float] = None
+    perp_positions: Optional[Dict[str, Any]] = field(default_factory=dict)  # instrument -> position details
+    initial_margin_utilization: Optional[float] = None
+    maintenance_margin_utilization: Optional[float] = None
     upnl: Optional[float] = None
-    total_account_equity: Optional[float] = Field(None, alias="totalAccountEquity")
-    margin_balance: Optional[float] = Field(None, alias="marginBalance")
-    initial_margin: Optional[float] = Field(None, alias="initialMargin")
-    maintenance_margin: Optional[float] = Field(None, alias="maintenanceMargin")
-    total_volume: Optional[float] = Field(None, alias="totalVolume")
-    total_pnl: Optional[float] = Field(None, alias="totalPnl")
-    available_balance: Optional[float] = Field(None, alias="availableBalance")
-    withdrawable_balance_notional: Optional[float] = Field(None, alias="withdrawableBalanceNotional")
-    transfer_margin_req: Optional[float] = Field(None, alias="transferMarginReq")
-    max_drawdown: Optional[float] = Field(None, alias="maxDrawdown")
-    vault_summary: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="vaultSummary")
-    spot_account_equity: Optional[float] = Field(None, alias="spotAccountEquity")
-    derivative_account_equity: Optional[float] = Field(None, alias="derivativeAccountEquity")
-    spot_volume: Optional[float] = Field(None, alias="spotVolume")
-    perp_volume: Optional[float] = Field(None, alias="perpVolume")
+    total_account_equity: Optional[float] = None
+    margin_balance: Optional[float] = None
+    initial_margin: Optional[float] = None
+    maintenance_margin: Optional[float] = None
+    total_volume: Optional[float] = None
+    total_pnl: Optional[float] = None
+    available_balance: Optional[float] = None
+    withdrawable_balance_notional: Optional[float] = None
+    transfer_margin_req: Optional[float] = None
+    max_drawdown: Optional[float] = None
+    vault_summary: Optional[Dict[str, Any]] = field(default_factory=dict)
+    spot_account_equity: Optional[float] = None
+    derivative_account_equity: Optional[float] = None
+    spot_volume: Optional[float] = None
+    perp_volume: Optional[float] = None
 
 
 # Referral Summary Method
-class ReferralSummaryParams(BaseModel):
+@dataclass
+class ReferralSummaryParams:
     """Parameters for referral summary query."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class ReferralSummaryResponse(BaseModel):
+@dataclass
+class ReferralSummaryResponse:
     """Referral summary response."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
-    referral_code: Optional[str] = Field(None, alias="referralCode")
-    total_referrals: Optional[int] = Field(None, alias="totalReferrals")
-    total_volume: Optional[str] = Field(None, alias="totalVolume")
-    total_rewards: Optional[str] = Field(None, alias="totalRewards")
+    referral_code: Optional[str] = None
+    total_referrals: Optional[int] = None
+    total_volume: Optional[str] = None
+    total_rewards: Optional[str] = None
     tier: Optional[str] = None
 
 
 # User Fee Info Method
-class UserFeeInfoParams(BaseModel):
+@dataclass
+class UserFeeInfoParams:
     """Parameters for user fee info query."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class UserFeeInfoResponse(BaseModel):
+@dataclass
+class UserFeeInfoResponse:
     """User fee info response."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
     account: str
-    spot_volume_14d: Optional[str] = Field(None, alias="spotVolume14d")
-    spot_volume_30d: Optional[str] = Field(None, alias="spotVolume30d")
-    stable_spot_volume_14d: Optional[str] = Field(None, alias="stableSpotVolume14d")
-    stable_spot_volume_30d: Optional[str] = Field(None, alias="stableSpotVolume30d")
-    perp_volume_14d: Optional[str] = Field(None, alias="perpVolume14d")
-    perp_volume_30d: Optional[str] = Field(None, alias="perpVolume30d")
-    option_volume_14d: Optional[str] = Field(None, alias="optionVolume14d")
-    option_volume_30d: Optional[str] = Field(None, alias="optionVolume30d")
-    total_volume_threshold: Optional[int] = Field(None, alias="totalVolumeThreshold")
-    perp_maker_fee_rate: Optional[float] = Field(None, alias="perpMakerFeeRate")
-    perp_taker_fee_rate: Optional[float] = Field(None, alias="perpTakerFeeRate")
-    spot_maker_fee_rate: Optional[float] = Field(None, alias="spotMakerFeeRate")
-    spot_taker_fee_rate: Optional[float] = Field(None, alias="spotTakerFeeRate")
-    stable_spot_maker_fee_rate: Optional[float] = Field(None, alias="stableSpotMakerFeeRate")
-    stable_spot_taker_fee_rate: Optional[float] = Field(None, alias="stableSpotTakerFeeRate")
-    option_maker_fee_rate: Optional[float] = Field(None, alias="optionMakerFeeRate")
-    option_taker_fee_rate: Optional[float] = Field(None, alias="optionTakerFeeRate")
+    spot_volume_14d: Optional[str] = None
+    spot_volume_30d: Optional[str] = None
+    stable_spot_volume_14d: Optional[str] = None
+    stable_spot_volume_30d: Optional[str] = None
+    perp_volume_14d: Optional[str] = None
+    perp_volume_30d: Optional[str] = None
+    option_volume_14d: Optional[str] = None
+    option_volume_30d: Optional[str] = None
+    total_volume_threshold: Optional[int] = None
+    perp_maker_fee_rate: Optional[float] = None
+    perp_taker_fee_rate: Optional[float] = None
+    spot_maker_fee_rate: Optional[float] = None
+    spot_taker_fee_rate: Optional[float] = None
+    stable_spot_maker_fee_rate: Optional[float] = None
+    stable_spot_taker_fee_rate: Optional[float] = None
+    option_maker_fee_rate: Optional[float] = None
+    option_taker_fee_rate: Optional[float] = None
 
 
 # Account History Method
-class AccountHistoryParams(BaseModel):
+@dataclass
+class AccountHistoryParams:
     """Parameters for account history query."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class AccountHistoryResponse(BaseModel):
+@dataclass
+class AccountHistoryResponse:
     """Account history response."""
-    pass 
+    pass
 
 
 # Order History Method
-class OrderHistoryParams(BaseModel):
+@dataclass
+class OrderHistoryParams:
     """Parameters for order history query."""
-    model_config = ConfigDict(populate_by_name=True)
+    user: str
+    instrument_id: Optional[str] = None
+    limit: Optional[int] = None
     
-    user: str = Field(..., description="User address")
-    instrument_id: Optional[str] = Field(None, alias="instrumentId", description="Filter by instrument ID")
-    limit: Optional[int] = Field(None, description="Number of orders to return")
-    
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class OrderHistoryEntry(BaseModel):
+@dataclass
+class OrderHistoryEntry:
     """Single order history entry."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
-    order_id: Optional[int] = Field(None, alias="orderId")
+    order_id: Optional[int] = None
     oid: Optional[int] = None
     user: Optional[str] = None
-    instrument_id: Optional[int] = Field(None, alias="instrumentId")
+    instrument_id: Optional[int] = None
     instrument: Optional[str] = None
     side: Optional[Literal["s", "b"]] = None
     price: Optional[str] = None
     size: Optional[str] = None
     state: Optional[str] = None
-    created_at: Optional[str] = Field(None, alias="createdAt")
+    created_at: Optional[str] = None
     timestamp: Optional[str] = None
     cloid: Optional[str] = None
     tif: Optional[str] = None
@@ -264,267 +238,249 @@ class OrderHistoryEntry(BaseModel):
     unfilled: Optional[str] = None
 
 
-class OrderHistoryResponse(BaseModel):
+@dataclass
+class OrderHistoryResponse:
     """Order history response."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
-    orders: List[OrderHistoryEntry] = Field(default_factory=list, description="List of order history entries")
+    orders: List[OrderHistoryEntry] = field(default_factory=list)
     page: Optional[int] = None
     limit: Optional[int] = None
-    total_count: Optional[int] = Field(None, alias="totalCount")
-    total_pages: Optional[int] = Field(None, alias="totalPages")
-    has_next: Optional[bool] = Field(None, alias="hasNext")
-    has_prev: Optional[bool] = Field(None, alias="hasPrev")
+    total_count: Optional[int] = None
+    total_pages: Optional[int] = None
+    has_next: Optional[bool] = None
+    has_prev: Optional[bool] = None
 
 
 # Trade History Method (Fills)
-class TradeHistoryParams(BaseModel):
+@dataclass
+class TradeHistoryParams:
     """Parameters for trade history (fills) query."""
-    model_config = ConfigDict(populate_by_name=True)
+    user: str
+    instrument_id: Optional[str] = None
+    limit: Optional[int] = None
     
-    user: str = Field(..., description="User address")
-    instrument_id: Optional[str] = Field(None, alias="instrumentId", description="Filter by instrument ID")
-    limit: Optional[int] = Field(None, description="Number of trades to return")
-    
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class TradeHistoryEntry(BaseModel):
+@dataclass
+class TradeHistoryEntry:
     """Single fill / trade history entry."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
-    instrument_id: int = Field(..., alias="instrumentId")
+    instrument_id: int
     instrument: str
     account: str
-    order_id: int = Field(..., alias="orderId")
-    cloid: Optional[str] = None
-    trade_id: int = Field(..., alias="tradeId")
+    order_id: int
+    trade_id: int
     side: Literal["b", "s"]
-    position_side: str = Field(..., alias="positionSide")
-    direction: Optional[str] = None  # e.g. "openLong", "closeLong", "openShort", "closeShort"
+    position_side: str
     price: str
     size: str
-    closed_pnl: Optional[str] = Field(None, alias="closedPnl")
-    start_size: Optional[str] = Field(None, alias="startSize")
-    start_price: Optional[str] = Field(None, alias="startPrice")
+    cloid: Optional[str] = None
+    direction: Optional[str] = None  # e.g. "openLong", "closeLong", "openShort", "closeShort"
+    closed_pnl: Optional[str] = None
+    start_size: Optional[str] = None
+    start_price: Optional[str] = None
     fee: Optional[str] = None
-    broker_fee: Optional[str] = Field(None, alias="brokerFee")
-    fee_token_id: Optional[int] = Field(None, alias="feeTokenId")
+    broker_fee: Optional[str] = None
+    fee_token_id: Optional[int] = None
     crossed: Optional[bool] = None
-    tx_hash: Optional[str] = Field(None, alias="txHash")
-    fill_type: Optional[int] = Field(None, alias="fillType")
-    notional_value: Optional[str] = Field(None, alias="notionalValue")
-    block_timestamp: Optional[str] = Field(None, alias="blockTimestamp")
+    tx_hash: Optional[str] = None
+    fill_type: Optional[int] = None
+    notional_value: Optional[str] = None
+    block_timestamp: Optional[str] = None
     # liquidation_info optional object when fill is from liquidation
 
 
-class TradeHistoryResponse(BaseModel):
+@dataclass
+class TradeHistoryResponse:
     """Trade history (fills) response. API returns data in top-level 'data' key."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
-    entries: List[TradeHistoryEntry] = Field(default_factory=list, description="List of fill/trade entries")
+    entries: List[TradeHistoryEntry] = field(default_factory=list)
     page: Optional[int] = None
     limit: Optional[int] = None
-    total_count: Optional[int] = Field(None, alias="totalCount")
-    total_pages: Optional[int] = Field(None, alias="totalPages")
-    has_next: Optional[bool] = Field(None, alias="hasNext")
-    has_prev: Optional[bool] = Field(None, alias="hasPrev")
+    total_count: Optional[int] = None
+    total_pages: Optional[int] = None
+    has_next: Optional[bool] = None
+    has_prev: Optional[bool] = None
 
 
 # Funding History Method
-class FundingHistoryParams(BaseModel):
+@dataclass
+class FundingHistoryParams:
     """Parameters for funding history query."""
-    user: str = Field(..., description="User address")
-    
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
-        """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
-
-
-class FundingHistoryEntry(BaseModel):
-    """Single funding history entry."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
     user: str
-    instrument_id: int = Field(..., alias="instrumentId")
-    settlement_currency: int = Field(..., alias="settlementCurrency")
-    funding_payment: str = Field(..., alias="fundingPayment")
-    funding_rate: str = Field(..., alias="fundingRate")
-    mark_price: str = Field(..., alias="markPrice")
+    
+    def __post_init__(self):
+        """Validate and checksum the user address."""
+        self.user = validate_ethereum_address(self.user)
+
+
+@dataclass
+class FundingHistoryEntry:
+    """Single funding history entry."""
+    user: str
+    instrument_id: int
+    settlement_currency: int
+    funding_payment: str
+    funding_rate: str
+    mark_price: str
     size: str
     timestamp: str
 
 
-class FundingHistoryResponse(BaseModel):
+@dataclass
+class FundingHistoryResponse:
     """Funding history response. API returns data in top-level 'data' key."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
-    entries: List[FundingHistoryEntry] = Field(default_factory=list, description="List of funding history entries")
+    entries: List[FundingHistoryEntry] = field(default_factory=list)
     page: Optional[int] = None
     limit: Optional[int] = None
-    total_count: Optional[int] = Field(None, alias="totalCount")
-    total_pages: Optional[int] = Field(None, alias="totalPages")
-    has_next: Optional[bool] = Field(None, alias="hasNext")
-    has_prev: Optional[bool] = Field(None, alias="hasPrev")
+    total_count: Optional[int] = None
+    total_pages: Optional[int] = None
+    has_next: Optional[bool] = None
+    has_prev: Optional[bool] = None
 
 
 # Transfer History Method
-class TransferHistoryParams(BaseModel):
+@dataclass
+class TransferHistoryParams:
     """Parameters for transfer history query."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class TransferHistoryResponse(BaseModel):
+@dataclass
+class TransferHistoryResponse:
     """Transfer history response."""
-    pass 
+    pass
 
 
 # Instrument Leverage Method
-class InstrumentLeverageParams(BaseModel):
+@dataclass
+class InstrumentLeverageParams:
     """Parameters for instrument leverage query."""
-    user: str = Field(..., description="User address")
-    symbol: str = Field(..., description="Instrument symbol")
+    user: str
+    symbol: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class InstrumentLeverageResponse(BaseModel):
+@dataclass
+class InstrumentLeverageResponse:
     """Instrument leverage response."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    
     address: str
-    instrument_id: int = Field(..., alias="instrumentId")
+    instrument_id: int
     instrument: str
-    margin_type: str = Field(..., alias="marginType")  # e.g. "isolated", "cross"
+    margin_type: str  # e.g. "isolated", "cross"
     leverage: str
-    updated_at: int = Field(..., alias="updatedAt")
+    updated_at: int
 
 
 # Referral Info Method
-class ReferralInfoParams(BaseModel):
+@dataclass
+class ReferralInfoParams:
     """Parameters for referral info query."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class ReferralInfoResponse(BaseModel):
+@dataclass
+class ReferralInfoResponse:
     """Referral info response."""
-    pass 
+    pass
 
 
 # Sub Accounts List Method
-class SubAccountsListParams(BaseModel):
+@dataclass
+class SubAccountsListParams:
     """Parameters for sub accounts list query."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class SubAccountsListResponse(BaseModel):
+@dataclass
+class SubAccountsListResponse:
     """Sub accounts list response."""
-    pass 
+    pass
 
 
 # Agents Method
-class AgentsParams(BaseModel):
+@dataclass
+class AgentsParams:
     """Parameters for agents query."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class Agent(BaseModel):
+@dataclass
+class Agent:
     """Agent information."""
-    user: str = Field(..., description="User address")
-    agent_address: Optional[str] = Field(None, description="Agent address")
-    agent_name: Optional[str] = Field(None, description="Agent name")
-    created_at_block_timestamp: Optional[int] = Field(None, description="Creation timestamp")
-    valid_until_timestamp: Optional[int] = Field(None, description="Validity expiration timestamp")
+    user: str
+    agent_address: Optional[str] = None
+    agent_name: Optional[str] = None
+    created_at_block_timestamp: Optional[int] = None
+    valid_until_timestamp: Optional[int] = None
     
-    model_config = ConfigDict(populate_by_name=True)
-    
-    @field_validator('user', 'agent_address', mode='before')
-    @classmethod
-    def validate_addresses(cls, v: Optional[str]) -> Optional[str]:
+    def __post_init__(self):
         """Validate and checksum Ethereum addresses."""
-        if v is None or v == "":
-            return v
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
+        if self.agent_address:
+            self.agent_address = validate_ethereum_address(self.agent_address)
 
 
-class AgentsResponse(BaseModel):
+@dataclass
+class AgentsResponse:
     """Agents response."""
     pass
 
 
 # User Balance Info Method
-class UserBalanceInfoParams(BaseModel):
+@dataclass
+class UserBalanceInfoParams:
     """Parameters for user balance info query."""
-    user: str = Field(..., description="User address")
-    type: Literal["all", "spot", "derivative"] = Field(..., description="Balance type")
+    user: str
+    type: Literal["all", "spot", "derivative"]
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class UserBalanceInfoResponse(BaseModel):
+@dataclass
+class UserBalanceInfoResponse:
     """User balance info response.
     Keys are collateral currency IDs (e.g. "1"), values are balance strings.
     """
-    model_config = ConfigDict(extra='allow')
-    
-    spot: Dict[str, str] = Field(default_factory=dict, description="Spot balances by collateral currency ID")
-    derivative: Dict[str, str] = Field(default_factory=dict, description="Derivative balances by collateral currency ID")
+    spot: Dict[str, str] = field(default_factory=dict)
+    derivative: Dict[str, str] = field(default_factory=dict)
 
 
 # Account Info Method
-class AccountInfoParams(BaseModel):
+@dataclass
+class AccountInfoParams:
     """Parameters for account info query."""
-    model_config = ConfigDict(populate_by_name=True)
+    user: str
+    collateral_id: Optional[int] = None
+    include_history: Optional[bool] = None
     
-    user: str = Field(..., description="User address")
-    collateral_id: Optional[int] = Field(None, alias="collateralID", description="Collateral ID")
-    include_history: Optional[bool] = Field(None, alias="includeHistory", description="Include history")
-    
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class AccountInfoResponse(BaseModel):
+@dataclass
+class AccountInfoResponse:
     """Account info response."""
-    pass 
+    pass

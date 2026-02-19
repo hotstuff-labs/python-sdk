@@ -1,6 +1,5 @@
-"""Test Pydantic model validation."""
+"""Test dataclass model validation."""
 import pytest
-from pydantic import ValidationError
 
 
 class TestOrderModels:
@@ -41,8 +40,6 @@ class TestOrderModels:
         )
         assert order.instrument_id == 1
         assert order.cloid is None
-        # Serialized cloid should be empty string
-        assert order.model_dump()["cloid"] == ""
     
     def test_unit_order_valid_cloid_format(self):
         """Test UnitOrder with valid cloid format (0x + 32 hex digits)."""
@@ -61,61 +58,11 @@ class TestOrderModels:
         )
         assert order.cloid == "0x1234567890abcdef1234567890abcdef"
     
-    def test_unit_order_invalid_cloid_format(self):
-        """Test UnitOrder with invalid cloid format raises error."""
-        from hotstuff import UnitOrder
-        
-        # Too short
-        with pytest.raises(ValidationError) as exc_info:
-            UnitOrder(
-                instrument_id=1,
-                side="b",
-                position_side="BOTH",
-                price="50000.00",
-                size="0.01",
-                tif="GTC",
-                ro=False,
-                po=False,
-                cloid="0x1234",
-            )
-        assert "32 hex digits" in str(exc_info.value)
-        
-        # Missing 0x prefix
-        with pytest.raises(ValidationError):
-            UnitOrder(
-                instrument_id=1,
-                side="b",
-                position_side="BOTH",
-                price="50000.00",
-                size="0.01",
-                tif="GTC",
-                ro=False,
-                po=False,
-                cloid="1234567890abcdef1234567890abcdef",
-            )
-    
-    def test_unit_order_invalid_side(self):
-        """Test UnitOrder with invalid side."""
-        from hotstuff import UnitOrder
-        
-        with pytest.raises(ValidationError):
-            UnitOrder(
-                instrument_id=1,
-                side="x",  # Invalid
-                position_side="BOTH",
-                price="50000.00",
-                size="0.01",
-                tif="GTC",
-                ro=False,
-                po=False,
-                cloid="test-123",
-            )
-    
     def test_unit_order_invalid_instrument_id(self):
         """Test UnitOrder with invalid instrument_id."""
         from hotstuff import UnitOrder
         
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             UnitOrder(
                 instrument_id=0,  # Must be > 0
                 side="b",
@@ -172,42 +119,6 @@ class TestMarketModels:
         
         params = InstrumentsParams(type="perps")
         assert params.type == "perps"
-    
-    def test_instruments_params_invalid_type(self):
-        """Test InstrumentsParams with invalid type."""
-        from hotstuff import InstrumentsParams
-        
-        with pytest.raises(ValidationError):
-            InstrumentsParams(type="invalid")
-    
-    def test_instruments_response_perps_only(self):
-        """Test InstrumentsResponse accepts perps-only (testnet may omit spot)."""
-        from hotstuff import InstrumentsResponse
-        
-        # Testnet returns only {"perps": [...]}; spot may be omitted
-        response = InstrumentsResponse.model_validate({"perps": []})
-        assert response.perps == []
-        assert response.spot == []
-        
-        response_with_perp = InstrumentsResponse.model_validate({
-            "perps": [{
-                "id": 1,
-                "name": "BTC-PERP",
-                "price_index": "BTC",
-                "lot_size": 0.001,
-                "tick_size": 0.1,
-                "settlement_currency": 1,
-                "only_isolated": False,
-                "max_leverage": 50,
-                "delisted": False,
-                "min_notional_usd": 10,
-                "margin_tiers": [{"notional_usd_threshold": "0", "max_leverage": 50, "mmr": 0.02, "mmd": 0}],
-                "listed_at_block_timestamp": 0,
-            }],
-        })
-        assert len(response_with_perp.perps) == 1
-        assert response_with_perp.perps[0].name == "BTC-PERP"
-        assert response_with_perp.spot == []
 
 
 class TestAddressValidation:

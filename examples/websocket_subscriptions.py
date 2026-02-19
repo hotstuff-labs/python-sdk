@@ -1,5 +1,5 @@
 """Example: WebSocket subscriptions."""
-import asyncio
+import time
 import importlib
 from hotstuff import (
     WebSocketTransport,
@@ -12,7 +12,8 @@ subscription_methods = importlib.import_module("hotstuff.methods.subscription.gl
 TickerSubscriptionParams = subscription_methods.TickerSubscriptionParams
 TradeSubscriptionParams = subscription_methods.TradeSubscriptionParams
 
-async def main():
+
+def main():
     """Main example function."""
     # Create WebSocket transport for testnet
     transport = WebSocketTransport(
@@ -28,7 +29,7 @@ async def main():
             print(f"Ticker update: {data.data}")
         
         print("Subscribing to BTC-PERP ticker...")
-        ticker_sub = await subscriptions.ticker(
+        ticker_sub = subscriptions.ticker(
             TickerSubscriptionParams(symbol="BTC-PERP"),
             handle_ticker
         )
@@ -38,24 +39,24 @@ async def main():
             print(f"Trade: {data.data}")
         
         print("Subscribing to BTC-PERP trades...")
-        trade_sub = await subscriptions.trade(
+        trade_sub = subscriptions.trade(
             TradeSubscriptionParams(instrument_id="BTC-PERP"),
             handle_trade
         )
         
         # Run for 30 seconds
         print("\nListening to updates for 30 seconds...\n")
-        await asyncio.sleep(30)
+        time.sleep(30)
         
         # Unsubscribe
         print("\nUnsubscribing...")
-        await ticker_sub["unsubscribe"]()
-        await trade_sub["unsubscribe"]()
+        ticker_sub["unsubscribe"]()
+        trade_sub["unsubscribe"]()
         
     finally:
         # Clean up
-        await transport.disconnect()
+        transport.disconnect()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

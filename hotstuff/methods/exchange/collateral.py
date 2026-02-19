@@ -1,72 +1,63 @@
 """Collateral exchange method types."""
+from dataclasses import dataclass
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from hotstuff.utils.address import validate_ethereum_address
 
 
 # Account Spot Withdraw Request Method
-class AccountSpotWithdrawRequestParams(BaseModel):
+@dataclass
+class AccountSpotWithdrawRequestParams:
     """Parameters for account spot withdraw request."""
-    collateral_id: int = Field(..., alias="collateralId", description="Collateral ID")
-    amount: str = Field(..., description="Withdrawal amount")
-    chain_id: int = Field(..., alias="chainId", description="Chain ID")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    collateral_id: int
+    amount: str
+    chain_id: int
+    nonce: Optional[int] = None
 
 
 # Account Derivative Withdraw Request Method
-class AccountDerivativeWithdrawRequestParams(BaseModel):
+@dataclass
+class AccountDerivativeWithdrawRequestParams:
     """Parameters for account derivative withdraw request."""
-    collateral_id: int = Field(..., alias="collateralId", description="Collateral ID")
-    amount: str = Field(..., description="Withdrawal amount")
-    chain_id: int = Field(..., alias="chainId", description="Chain ID")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    collateral_id: int
+    amount: str
+    chain_id: int
+    nonce: Optional[int] = None
 
 
 # Account Spot Balance Transfer Request Method
-class AccountSpotBalanceTransferRequestParams(BaseModel):
+@dataclass
+class AccountSpotBalanceTransferRequestParams:
     """Parameters for account spot balance transfer request."""
-    collateral_id: int = Field(..., alias="collateralId", description="Collateral ID")
-    amount: str = Field(..., description="Transfer amount")
-    destination: str = Field(..., description="Destination address")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    @field_validator('destination', mode='before')
-    @classmethod
-    def validate_destination_address(cls, v: str) -> str:
+    collateral_id: int
+    amount: str
+    destination: str
+    nonce: Optional[int] = None
+    
+    def __post_init__(self):
         """Validate and checksum the destination address."""
-        return validate_ethereum_address(v)
+        self.destination = validate_ethereum_address(self.destination)
 
 
 # Account Derivative Balance Transfer Request Method
-class AccountDerivativeBalanceTransferRequestParams(BaseModel):
+@dataclass
+class AccountDerivativeBalanceTransferRequestParams:
     """Parameters for account derivative balance transfer request."""
-    collateral_id: int = Field(..., alias="collateralId", description="Collateral ID")
-    amount: str = Field(..., description="Transfer amount")
-    destination: str = Field(..., description="Destination address")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    @field_validator('destination', mode='before')
-    @classmethod
-    def validate_destination_address(cls, v: str) -> str:
+    collateral_id: int
+    amount: str
+    destination: str
+    nonce: Optional[int] = None
+    
+    def __post_init__(self):
         """Validate and checksum the destination address."""
-        return validate_ethereum_address(v)
+        self.destination = validate_ethereum_address(self.destination)
 
 
 # Account Internal Balance Transfer Request Method
-class AccountInternalBalanceTransferRequestParams(BaseModel):
+@dataclass
+class AccountInternalBalanceTransferRequestParams:
     """Parameters for account internal balance transfer request."""
-    collateral_id: int = Field(..., alias="collateralId", description="Collateral ID")
-    amount: str = Field(..., description="Transfer amount")
-    to_derivatives_account: bool = Field(..., alias="toDerivativesAccount", description="Transfer to derivatives account flag")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    collateral_id: int
+    amount: str
+    to_derivatives_account: bool
+    nonce: Optional[int] = None

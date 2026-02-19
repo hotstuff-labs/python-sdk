@@ -1,8 +1,6 @@
 """HTTP transport implementation."""
-import json
-from typing import Optional, Any, Dict, Callable, Awaitable
-import aiohttp
-import asyncio
+from typing import Optional, Any
+import requests
 
 from hotstuff.types import HttpTransportOptions
 from hotstuff.utils import ENDPOINTS_URLS
@@ -52,17 +50,16 @@ class HttpTransport:
         self.on_request = options.on_request
         self.on_response = options.on_response
         
-        # Session will be created lazily
-        self._session: Optional[aiohttp.ClientSession] = None
+        # Session for connection pooling
+        self._session: Optional[requests.Session] = None
     
-    async def _get_session(self) -> aiohttp.ClientSession:
-        """Get or create aiohttp session."""
-        if self._session is None or self._session.closed:
-            timeout = aiohttp.ClientTimeout(total=self.timeout) if self.timeout else None
-            self._session = aiohttp.ClientSession(timeout=timeout)
+    def _get_session(self) -> requests.Session:
+        """Get or create requests session."""
+        if self._session is None:
+            self._session = requests.Session()
         return self._session
     
-    async def request(
+    def request(
         self,
         endpoint: str,
         payload: Any,
@@ -75,7 +72,7 @@ class HttpTransport:
         Args:
             endpoint: The endpoint to call ('info', 'exchange', or 'explorer')
             payload: The request payload
-            signal: Optional abort signal
+            signal: Optional abort signal (not used in sync version)
             method: HTTP method (GET or POST)
             
         Returns:
@@ -101,72 +98,80 @@ class HttpTransport:
             }
             
             # Get session
-            session = await self._get_session()
-            
-            # Prepare request kwargs
-            kwargs: Dict[str, Any] = {
-                "headers": headers,
-            }
-            
-            if method == "POST":
-                kwargs["json"] = payload
+            session = self._get_session()
             
             # Make request
-            async with session.request(method, url, **kwargs) as response:
-                # Handle rate limiting
-                if response.status == 429:
-                    retry_after = response.headers.get("Retry-After")
-                    raise HotstuffRateLimitError(
-                        "Rate limit exceeded",
-                        retry_after=int(retry_after) if retry_after else None
-                    )
-                
-                # Handle authentication errors
-                if response.status in (401, 403):
-                    text = await response.text()
-                    raise HotstuffAuthenticationError(text or "Authentication failed", status_code=response.status)
-                
-                # Check if response is OK
-                if not response.ok:
-                    text = await response.text()
-                    raise HotstuffAPIError(text or f"HTTP {response.status}", status_code=response.status)
-                
-                # Check content type
-                content_type = response.headers.get("Content-Type", "")
-                if "application/json" not in content_type:
-                    text = await response.text()
-                    raise HotstuffAPIError(f"Unexpected content type: {text}")
-                
-                # Parse response
-                body = await response.json()
-                
-                # Check for error in response
-                if isinstance(body, dict) and body.get("type") == "error":
-                    raise HotstuffAPIError(body.get("message", "Unknown error"))
-                
-                return body
+            if method == "POST":
+                response = session.post(
+                    url,
+                    json=payload,
+                    headers=headers,
+                    timeout=self.timeout
+                )
+            else:
+                response = session.get(
+                    url,
+                    headers=headers,
+                    timeout=self.timeout
+                )
+            
+            # Handle rate limiting
+            if response.status_code == 429:
+                retry_after = response.headers.get("Retry-After")
+                raise HotstuffRateLimitError(
+                    "Rate limit exceeded",
+                    retry_after=int(retry_after) if retry_after else None
+                )
+            
+            # Handle authentication errors
+            if response.status_code in (401, 403):
+                raise HotstuffAuthenticationError(
+                    response.text or "Authentication failed",
+                    status_code=response.status_code
+                )
+            
+            # Check if response is OK
+            if not response.ok:
+                raise HotstuffAPIError(
+                    response.text or f"HTTP {response.status_code}",
+                    status_code=response.status_code
+                )
+            
+            # Check content type
+            content_type = response.headers.get("Content-Type", "")
+            if "application/json" not in content_type:
+                raise HotstuffAPIError(f"Unexpected content type: {response.text}")
+            
+            # Parse response
+            body = response.json()
+            
+            # Check for error in response
+            if isinstance(body, dict) and body.get("type") == "error":
+                raise HotstuffAPIError(body.get("message", "Unknown error"))
+            
+            return body
         
-        except asyncio.TimeoutError:
+        except requests.Timeout:
             raise HotstuffTimeoutError(f"Request to {endpoint} timed out")
-        except aiohttp.ClientConnectorError as e:
+        except requests.ConnectionError as e:
             raise HotstuffConnectionError(f"Failed to connect to {url}: {str(e)}")
-        except aiohttp.ClientError as e:
+        except requests.RequestException as e:
             raise HotstuffConnectionError(f"HTTP request failed: {str(e)}")
         except (HotstuffAPIError, HotstuffConnectionError, HotstuffTimeoutError, HotstuffRateLimitError):
             raise
         except Exception as e:
             raise HotstuffAPIError(str(e))
     
-    async def close(self):
+    def close(self):
         """Close the HTTP session."""
-        if self._session and not self._session.closed:
-            await self._session.close()
+        if self._session:
+            self._session.close()
+            self._session = None
     
-    async def __aenter__(self):
-        """Async context manager entry."""
+    def __enter__(self):
+        """Context manager entry."""
         return self
     
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit."""
-        await self.close()
-
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self.close()

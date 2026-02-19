@@ -1,5 +1,4 @@
 """Example: Vault operations with ExchangeClient."""
-import asyncio
 import os
 from hotstuff import (
     HttpTransport,
@@ -14,7 +13,7 @@ from hotstuff.methods.exchange.vault import (
 )
 
 
-async def main():
+def main():
     """Main example function demonstrating vault operations."""
     # Get private key from environment
     private_key = os.getenv("PRIVATE_KEY")
@@ -43,13 +42,13 @@ async def main():
         print("Fetching available vaults...")
         print("-" * 40)
         # Uncomment when vaults endpoint is available:
-        # vaults = await info.vaults({})
+        # vaults = info.vaults({})
         # print(f"Available vaults: {vaults}\n")
         
         # Example 1: Deposit to a vault
         print("Example 1: Deposit to Vault")
         print("-" * 40)
-        result = await exchange.deposit_to_vault(
+        result = exchange.deposit_to_vault(
             DepositToVaultParams(
                 vault_address=vault_address,
                 amount="1000.0",  # Amount to deposit
@@ -60,7 +59,7 @@ async def main():
         # Example 2: Redeem shares from a vault
         print("Example 2: Redeem from Vault")
         print("-" * 40)
-        result = await exchange.redeem_from_vault(
+        result = exchange.redeem_from_vault(
             RedeemFromVaultParams(
                 vault_address=vault_address,
                 shares="500.0",  # Number of shares to redeem
@@ -74,8 +73,8 @@ async def main():
         traceback.print_exc()
     
     finally:
-        await transport.close()
+        transport.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

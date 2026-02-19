@@ -3,10 +3,9 @@ import msgpack
 from eth_account import Account
 from eth_account.messages import encode_structured_data
 from eth_utils import keccak
-from hotstuff.methods.exchange.op_codes import EXCHANGE_OP_CODES
 
 
-async def sign_action(
+def sign_action(
     wallet: Account,
     action: dict,
     tx_type: int,

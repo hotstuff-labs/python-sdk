@@ -1,9 +1,9 @@
 """WebSocket transport implementation."""
-import asyncio
 import json
+import time
+import threading
 from typing import Optional, Dict, Any, Callable, List
-import websockets
-from websockets.client import WebSocketClientProtocol
+import websocket
 
 from hotstuff.types import (
     WebSocketTransportOptions,
@@ -52,73 +52,51 @@ class WebSocketTransport:
             "timeout": 10.0,
         }
         
-        self.ws: Optional[WebSocketClientProtocol] = None
+        self.ws: Optional[websocket.WebSocket] = None
         self.reconnect_attempts = 0
         self.max_reconnect_attempts = 5
         self.reconnect_delay = 1.0
         
-        self.message_queue: Dict[str, asyncio.Future] = {}
+        self.message_queue: Dict[str, dict] = {}
         self.message_id_counter = 0
+        self._lock = threading.Lock()
         
         self.subscriptions: Dict[str, Subscription] = {}
         self.subscription_callbacks: Dict[str, Callable] = {}
         
-        self.connection_promise: Optional[asyncio.Task] = None
-        self.keep_alive_task: Optional[asyncio.Task] = None
-        self.receive_task: Optional[asyncio.Task] = None
+        self.keep_alive_thread: Optional[threading.Thread] = None
+        self.receive_thread: Optional[threading.Thread] = None
+        self._running = False
         
         self.auto_connect = options.auto_connect
         if self.auto_connect:
-            # Don't await here, just schedule it
-            asyncio.create_task(self._auto_connect())
-    
-    async def _auto_connect(self):
-        """Auto-connect on initialization."""
-        try:
-            await self.connect()
-        except Exception as e:
-            print(f"Auto-connect failed: {e}")
-    
-    async def _ensure_connected(self):
-        """Ensure the WebSocket is connected."""
-        if self.ws and not self.ws.closed:
-            return
-        
-        if self.connection_promise:
-            await self.connection_promise
-            return
-        
-        await self.connect()
+            self.connect()
     
     def _cleanup(self):
         """Cleanup resources."""
-        if self.keep_alive_task:
-            self.keep_alive_task.cancel()
-            self.keep_alive_task = None
+        self._running = False
         
-        if self.receive_task:
-            self.receive_task.cancel()
-            self.receive_task = None
+        if self.keep_alive_thread and self.keep_alive_thread.is_alive():
+            self.keep_alive_thread = None
         
-        # Reject all pending messages
-        for future in self.message_queue.values():
-            if not future.done():
-                future.set_exception(Exception("WebSocket disconnected"))
+        if self.receive_thread and self.receive_thread.is_alive():
+            self.receive_thread = None
         
-        self.message_queue.clear()
+        # Clear pending messages
+        with self._lock:
+            self.message_queue.clear()
     
-    async def _start_keep_alive(self):
+    def _start_keep_alive(self):
         """Start keep-alive ping loop."""
         interval = self.keep_alive.get("interval")
         if not interval:
             return
         
-        while True:
+        while self._running:
             try:
-                await asyncio.sleep(interval)
-                await self.ping()
-            except asyncio.CancelledError:
-                break
+                time.sleep(interval)
+                if self._running:
+                    self.ping()
             except Exception as e:
                 print(f"Keep-alive error: {e}")
                 break
@@ -138,16 +116,9 @@ class WebSocketTransport:
     def _handle_jsonrpc_response(self, response: dict):
         """Handle JSON-RPC response."""
         msg_id = str(response.get("id"))
-        future = self.message_queue.pop(msg_id, None)
-        
-        if future and not future.done():
-            if "error" in response:
-                error = response["error"]
-                future.set_exception(
-                    Exception(f"JSON-RPC Error {error.get('code')}: {error.get('message')}")
-                )
-            else:
-                future.set_result(response.get("result"))
+        with self._lock:
+            if msg_id in self.message_queue:
+                self.message_queue[msg_id] = response
     
     def _handle_jsonrpc_notification(self, notification: dict):
         """Handle JSON-RPC notification."""
@@ -166,42 +137,44 @@ class WebSocketTransport:
                         subscription_data = SubscriptionData(
                             channel=channel,
                             data=data,
-                            timestamp=asyncio.get_event_loop().time()
+                            timestamp=time.time()
                         )
                         try:
                             callback(subscription_data)
                         except Exception as e:
                             print(f"Callback error: {e}")
     
-    async def _receive_messages(self):
+    def _receive_messages(self):
         """Receive messages from WebSocket."""
-        try:
-            async for message in self.ws:
-                try:
+        while self._running and self.ws:
+            try:
+                message = self.ws.recv()
+                if message:
                     data = json.loads(message)
                     self._handle_incoming_message(data)
-                except json.JSONDecodeError as e:
-                    print(f"Failed to parse message: {e}")
-                except Exception as e:
-                    print(f"Error handling message: {e}")
-        except asyncio.CancelledError:
-            pass
-        except Exception as e:
-            print(f"Receive error: {e}")
-            # Trigger reconnection
-            if self.reconnect_attempts < self.max_reconnect_attempts:
-                asyncio.create_task(self._reconnect())
+            except websocket.WebSocketConnectionClosedException:
+                if self._running and self.reconnect_attempts < self.max_reconnect_attempts:
+                    self._reconnect()
+                break
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse message: {e}")
+            except Exception as e:
+                print(f"Receive error: {e}")
+                if self._running and self.reconnect_attempts < self.max_reconnect_attempts:
+                    self._reconnect()
+                break
     
-    async def _reconnect(self):
+    def _reconnect(self):
         """Reconnect to WebSocket."""
         self._cleanup()
-        await asyncio.sleep(self.reconnect_delay * self.reconnect_attempts)
+        time.sleep(self.reconnect_delay * self.reconnect_attempts)
         self.reconnect_attempts += 1
-        await self.connect()
+        self.connect()
     
-    async def _send_jsonrpc_message(self, message: dict) -> Any:
+    def _send_jsonrpc_message(self, message: dict) -> Any:
         """Send a JSON-RPC message and wait for response."""
-        await self._ensure_connected()
+        if not self.is_connected():
+            self.connect()
         
         # Assign message ID if not present
         if "id" not in message or message["id"] is None:
@@ -210,26 +183,33 @@ class WebSocketTransport:
         
         msg_id = str(message["id"])
         
-        # Create future for response
-        future = asyncio.Future()
-        self.message_queue[msg_id] = future
-        
-        # Set timeout
-        if self.timeout:
-            async def timeout_handler():
-                await asyncio.sleep(self.timeout)
-                if msg_id in self.message_queue:
-                    self.message_queue.pop(msg_id)
-                    if not future.done():
-                        future.set_exception(Exception("Request timeout"))
-            
-            asyncio.create_task(timeout_handler())
+        # Initialize response slot
+        with self._lock:
+            self.message_queue[msg_id] = None
         
         # Send message
-        await self.ws.send(json.dumps(message))
+        self.ws.send(json.dumps(message))
         
-        # Wait for response
-        return await future
+        # Wait for response with timeout
+        start_time = time.time()
+        timeout = self.timeout or 10.0
+        
+        while True:
+            with self._lock:
+                response = self.message_queue.get(msg_id)
+                if response is not None:
+                    del self.message_queue[msg_id]
+                    if "error" in response:
+                        error = response["error"]
+                        raise Exception(f"JSON-RPC Error {error.get('code')}: {error.get('message')}")
+                    return response.get("result")
+            
+            if time.time() - start_time > timeout:
+                with self._lock:
+                    self.message_queue.pop(msg_id, None)
+                raise Exception("Request timeout")
+            
+            time.sleep(0.01)
     
     def _format_subscription_params(
         self,
@@ -243,7 +223,7 @@ class WebSocketTransport:
         }
         return subscription
     
-    async def _subscribe_to_channels(self, params: dict) -> SubscribeResult:
+    def _subscribe_to_channels(self, params: dict) -> SubscribeResult:
         """Subscribe to channels."""
         self.message_id_counter += 1
         message = {
@@ -253,10 +233,10 @@ class WebSocketTransport:
             "id": str(self.message_id_counter),
         }
         
-        result = await self._send_jsonrpc_message(message)
+        result = self._send_jsonrpc_message(message)
         return SubscribeResult(**result) if isinstance(result, dict) else result
     
-    async def _unsubscribe_from_channels(self, channels: List[str]) -> UnsubscribeResult:
+    def _unsubscribe_from_channels(self, channels: List[str]) -> UnsubscribeResult:
         """Unsubscribe from channels."""
         self.message_id_counter += 1
         message = {
@@ -266,40 +246,43 @@ class WebSocketTransport:
             "id": str(self.message_id_counter),
         }
         
-        result = await self._send_jsonrpc_message(message)
+        result = self._send_jsonrpc_message(message)
         return UnsubscribeResult(**result) if isinstance(result, dict) else result
     
     def is_connected(self) -> bool:
         """Check if WebSocket is connected."""
-        return self.ws is not None and not self.ws.closed
+        return self.ws is not None and self.ws.connected
     
-    async def connect(self):
+    def connect(self):
         """Connect to WebSocket server."""
         url = self.server["testnet" if self.is_testnet else "mainnet"]
         
         try:
-            self.ws = await websockets.connect(url)
+            self.ws = websocket.create_connection(url, timeout=self.timeout)
             self.reconnect_attempts = 0
+            self._running = True
             
-            # Start keep-alive
+            # Start keep-alive thread
             if self.keep_alive.get("interval"):
-                self.keep_alive_task = asyncio.create_task(self._start_keep_alive())
+                self.keep_alive_thread = threading.Thread(target=self._start_keep_alive, daemon=True)
+                self.keep_alive_thread.start()
             
-            # Start receiving messages
-            self.receive_task = asyncio.create_task(self._receive_messages())
+            # Start receiving messages thread
+            self.receive_thread = threading.Thread(target=self._receive_messages, daemon=True)
+            self.receive_thread.start()
         
         except Exception as e:
             raise Exception(f"Failed to connect: {e}")
     
-    async def disconnect(self):
+    def disconnect(self):
         """Disconnect from WebSocket server."""
         self._cleanup()
         
         if self.ws:
-            await self.ws.close()
+            self.ws.close()
             self.ws = None
     
-    async def ping(self) -> PongResult:
+    def ping(self) -> PongResult:
         """Send ping to server."""
         self.message_id_counter += 1
         message = {
@@ -308,10 +291,10 @@ class WebSocketTransport:
             "id": str(self.message_id_counter),
         }
         
-        result = await self._send_jsonrpc_message(message)
+        self._send_jsonrpc_message(message)
         return PongResult(pong=True)
     
-    async def subscribe(
+    def subscribe(
         self,
         channel: str,
         payload: dict,
@@ -328,23 +311,24 @@ class WebSocketTransport:
         Returns:
             Subscription result with unsubscribe method
         """
-        await self._ensure_connected()
+        if not self.is_connected():
+            self.connect()
         
-        subscription_id = f"{channel}_{asyncio.get_event_loop().time()}"
+        subscription_id = f"{channel}_{time.time()}"
         
         subscription = Subscription(
             id=subscription_id,
             channel=channel,
             symbol=payload.get("instrumentId") or payload.get("symbol"),
             params=payload,
-            timestamp=asyncio.get_event_loop().time()
+            timestamp=time.time()
         )
         
         self.subscription_callbacks[subscription_id] = listener
         
         try:
             subscription_params = self._format_subscription_params(channel, payload)
-            result = await self._subscribe_to_channels(subscription_params)
+            result = self._subscribe_to_channels(subscription_params)
             
             if result.status == "subscribed" and result.channels:
                 server_channel = result.channels[0]
@@ -367,7 +351,7 @@ class WebSocketTransport:
             self.subscription_callbacks.pop(subscription_id, None)
             raise e
     
-    async def unsubscribe(self, subscription_id: str):
+    def unsubscribe(self, subscription_id: str):
         """Unsubscribe from a channel."""
         subscription = self.subscriptions.get(subscription_id)
         if not subscription:
@@ -375,7 +359,7 @@ class WebSocketTransport:
         
         try:
             if self.is_connected():
-                await self._unsubscribe_from_channels([subscription.channel])
+                self._unsubscribe_from_channels([subscription.channel])
             
             self.subscriptions.pop(subscription_id, None)
             self.subscription_callbacks.pop(subscription_id, None)
@@ -390,12 +374,11 @@ class WebSocketTransport:
         """Get all active subscriptions."""
         return list(self.subscriptions.values())
     
-    async def __aenter__(self):
-        """Async context manager entry."""
-        await self.connect()
+    def __enter__(self):
+        """Context manager entry."""
+        self.connect()
         return self
     
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit."""
-        await self.disconnect()
-
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self.disconnect()

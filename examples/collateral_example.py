@@ -1,5 +1,4 @@
 """Example: Collateral transfer operations with ExchangeClient."""
-import asyncio
 import os
 from hotstuff import (
     HttpTransport,
@@ -16,7 +15,7 @@ from hotstuff.methods.exchange.collateral import (
 )
 
 
-async def main():
+def main():
     """Main example function demonstrating collateral transfer operations."""
     # Get private key from environment
     private_key = os.getenv("PRIVATE_KEY")
@@ -40,7 +39,7 @@ async def main():
         # Example 1: Request spot collateral withdrawal to external chain
         print("Example 1: Spot Withdraw Request")
         print("-" * 40)
-        result = await exchange.account_spot_withdraw_request(
+        result = exchange.account_spot_withdraw_request(
             AccountSpotWithdrawRequestParams(
                 collateral_id=1,  # USDC
                 amount="100.0",
@@ -52,7 +51,7 @@ async def main():
         # Example 2: Request derivative collateral withdrawal to external chain
         print("Example 2: Derivative Withdraw Request")
         print("-" * 40)
-        result = await exchange.account_derivative_withdraw_request(
+        result = exchange.account_derivative_withdraw_request(
             AccountDerivativeWithdrawRequestParams(
                 collateral_id=1,  # USDC
                 amount="50.0",
@@ -65,7 +64,7 @@ async def main():
         print("Example 3: Spot Balance Transfer")
         print("-" * 40)
         recipient_address = "0x1234567890123456789012345678901234567890"  # Replace with actual address
-        result = await exchange.account_spot_balance_transfer_request(
+        result = exchange.account_spot_balance_transfer_request(
             AccountSpotBalanceTransferRequestParams(
                 collateral_id=1,  # USDC
                 amount="25.0",
@@ -77,7 +76,7 @@ async def main():
         # Example 4: Transfer derivative balance to another address on Hotstuff
         print("Example 4: Derivative Balance Transfer")
         print("-" * 40)
-        result = await exchange.account_derivative_balance_transfer_request(
+        result = exchange.account_derivative_balance_transfer_request(
             AccountDerivativeBalanceTransferRequestParams(
                 collateral_id=1,  # USDC
                 amount="25.0",
@@ -89,7 +88,7 @@ async def main():
         # Example 5: Internal transfer between spot and derivatives accounts
         print("Example 5: Internal Balance Transfer (Spot -> Derivatives)")
         print("-" * 40)
-        result = await exchange.account_internal_balance_transfer_request(
+        result = exchange.account_internal_balance_transfer_request(
             AccountInternalBalanceTransferRequestParams(
                 collateral_id=1,  # USDC
                 amount="10.0",
@@ -101,7 +100,7 @@ async def main():
         # Example 6: Internal transfer from derivatives to spot
         print("Example 6: Internal Balance Transfer (Derivatives -> Spot)")
         print("-" * 40)
-        result = await exchange.account_internal_balance_transfer_request(
+        result = exchange.account_internal_balance_transfer_request(
             AccountInternalBalanceTransferRequestParams(
                 collateral_id=1,  # USDC
                 amount="5.0",
@@ -116,8 +115,8 @@ async def main():
         traceback.print_exc()
     
     finally:
-        await transport.close()
+        transport.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

@@ -1,5 +1,4 @@
 """Example: Trading with ExchangeClient."""
-import asyncio
 import time
 import os
 from hotstuff import (
@@ -25,7 +24,7 @@ from hotstuff.methods.exchange.trading import (
 )
 
 
-async def main():
+def main():
     """Main example function."""
     # Get private key from environment
     private_key = os.getenv("AGENT_PRIVATE_KEY")
@@ -49,7 +48,7 @@ async def main():
     try:
         # Get current ticker
         print("Fetching current price...")
-        ticker = await info.ticker(TickerParams(symbol="BTC-PERP"))
+        ticker = info.ticker(TickerParams(symbol="BTC-PERP"))
         # ticker returns a list with one element
         ticker_data = ticker[0] if ticker else None
         current_price = float(ticker_data.last_price) if ticker_data else 50000.0
@@ -57,7 +56,7 @@ async def main():
         
         # Place a limit order
         print("Placing limit order...")
-        order_result = await exchange.place_order(
+        order_result = exchange.place_order(
             PlaceOrderParams(
                 orders=[
                     UnitOrder(
@@ -83,13 +82,13 @@ async def main():
         
         # # Get open orders
         print("Fetching open orders...")
-        open_orders = await info.open_orders(OpenOrdersParams(user=account.address))
+        open_orders = info.open_orders(OpenOrdersParams(user=account.address))
         print(f"Open orders: {open_orders}\n")
 
 
         # Cancel order by oid
         print("Cancelling order by oid...")
-        cancel_result = await exchange.cancel_by_oid(
+        cancel_result = exchange.cancel_by_oid(
             CancelByOidParams(
                 cancels=[UnitCancelByOrderId(oid=order_result["data"]["status"][0]["resting"]["order_id"], instrumentId=1)],
                 expires_after=int(time.time() * 1000) + 3600000,
@@ -99,7 +98,7 @@ async def main():
         
         # Cancel all orders
         # print("Cancelling all orders...")
-        # cancel_result = await exchange.cancel_all(
+        # cancel_result = exchange.cancel_all(
         #     CancelAllParams(
         #         expires_after=int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
         #     )
@@ -111,8 +110,8 @@ async def main():
     
     finally:
         # Clean up
-        await transport.close()
+        transport.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

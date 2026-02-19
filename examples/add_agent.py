@@ -1,5 +1,4 @@
 """Example: Adding an agent with ExchangeClient."""
-import asyncio
 import time
 import os
 from hotstuff import (
@@ -11,7 +10,8 @@ from hotstuff import (
 )
 from eth_account import Account
 
-async def main():
+
+def main():
     """Main example function."""
     # Get main account private key from environment or use default for testing
     main_private_key = os.getenv("PRIVATE_KEY")
@@ -50,7 +50,7 @@ async def main():
     
     try:
         print("Adding agent...")
-        agent_result = await exchange.add_agent(
+        agent_result = exchange.add_agent(
             AddAgentParams(
                 agent_name="my-agent",
                 agent=agent_account.address,
@@ -68,7 +68,7 @@ async def main():
         print("Verifying agent was added...")
         info = InfoClient(transport=transport)
         from hotstuff.methods.info.account import AgentsParams
-        all_agents = await info.agents(
+        all_agents = info.agents(
             AgentsParams(user=main_account.address)
         )
         print(f"Found {len(all_agents)} agent(s) for account:")
@@ -86,8 +86,8 @@ async def main():
         traceback.print_exc()
     
     finally:
-        await transport.close()
+        transport.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

@@ -5,7 +5,6 @@ This example demonstrates the full flow of:
 2. Creating an agent
 3. Placing orders through the agent with broker configuration
 """
-import asyncio
 import time
 import os
 from hotstuff import (
@@ -26,7 +25,7 @@ from hotstuff.methods.exchange.trading import (
 )
 
 
-async def main():
+def main():
     """Main example function demonstrating broker fee with agent trading."""
     # Get main account private key from environment
     main_private_key = os.getenv("PRIVATE_KEY")
@@ -53,7 +52,7 @@ async def main():
         # Step 1: Approve broker fee from main account
         print("\nStep 1: Approving broker fee...")
         print("-" * 40)
-        result = await main_exchange.approve_broker_fee(
+        result = main_exchange.approve_broker_fee(
             ApproveBrokerFeeParams(
                 broker=broker_address,
                 max_fee_rate="0.001",  # 0.1% max fee rate
@@ -71,7 +70,7 @@ async def main():
         
         print(f"Agent address: {agent_account.address}")
         
-        result = await main_exchange.add_agent(
+        result = main_exchange.add_agent(
             AddAgentParams(
                 agent_name="broker-trading-agent",
                 agent=agent_account.address,
@@ -92,7 +91,7 @@ async def main():
         # Step 4: Place order from agent with broker config
         print("Step 4: Placing order with broker fee...")
         print("-" * 40)
-        result = await agent_exchange.place_order(
+        result = agent_exchange.place_order(
             PlaceOrderParams(
                 orders=[
                     UnitOrder(
@@ -124,7 +123,7 @@ async def main():
         print("Optional: Revoking agent...")
         print("-" * 40)
         # Uncomment to revoke the agent:
-        # result = await main_exchange.revoke_agent(
+        # result = main_exchange.revoke_agent(
         #     RevokeAgentParams(
         #         agent=agent_account.address,
         #         for_account="",  # optional: sub-account address
@@ -139,8 +138,8 @@ async def main():
         traceback.print_exc()
     
     finally:
-        await transport.close()
+        transport.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

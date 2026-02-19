@@ -1,57 +1,66 @@
 """Explorer info method types."""
+from dataclasses import dataclass
 from typing import Optional
-from pydantic import BaseModel, Field
 
 
 # Blocks Method
-class BlocksParams(BaseModel):
+@dataclass
+class BlocksParams:
     """Parameters for blocks query."""
-    offset: int = Field(..., description="Offset for pagination")
-    limit: int = Field(..., description="Number of blocks to return")
+    offset: int
+    limit: int
 
 
-class BlocksResponse(BaseModel):
+@dataclass
+class BlocksResponse:
     """Blocks response."""
-    pass 
+    pass
 
 
 # Block Details Method
-class BlockDetailsParams(BaseModel):
+@dataclass
+class BlockDetailsParams:
     """Parameters for block details query."""
-    block_hash: Optional[str] = Field(None, description="Block hash")
-    block_height: Optional[int] = Field(None, description="Block height")
+    block_hash: Optional[str] = None
+    block_height: Optional[int] = None
 
 
-class BlockDetailsResponse(BaseModel):
+@dataclass
+class BlockDetailsResponse:
     """Block details response."""
-    pass 
+    pass
 
 
 # Transactions Method
-class TransactionFilter(BaseModel):
+@dataclass
+class TransactionFilter:
     """Transaction filter."""
-    account: Optional[str] = Field(None, description="Filter by account")
-    tx_type: Optional[int] = Field(None, description="Filter by transaction type")
+    account: Optional[str] = None
+    tx_type: Optional[int] = None
 
 
-class TransactionsParams(BaseModel):
+@dataclass
+class TransactionsParams:
     """Parameters for transactions query."""
-    offset: Optional[int] = Field(None, description="Offset for pagination")
-    limit: Optional[int] = Field(None, description="Number of transactions to return")
-    filter: Optional[TransactionFilter] = Field(None, description="Transaction filter")
+    offset: Optional[int] = None
+    limit: Optional[int] = None
+    filter: Optional[TransactionFilter] = None
 
 
-class TransactionsResponse(BaseModel):
+@dataclass
+class TransactionsResponse:
     """Transactions response."""
-    pass 
+    pass
 
 
 # Transaction Details Method
-class TransactionDetailsParams(BaseModel):
+@dataclass
+class TransactionDetailsParams:
     """Parameters for transaction details query."""
-    tx_hash: str = Field(..., description="Transaction hash")
+    tx_hash: str
 
 
-class TransactionDetailsResponse(BaseModel):
+@dataclass
+class TransactionDetailsResponse:
     """Transaction details response."""
-    pass 
+    pass
