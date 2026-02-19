@@ -54,7 +54,7 @@ class ExchangeClient:
         nonce = self.nonce()
         
         # Create agent account from private key
-        agent_account = Account.from_key(params.agent_private_key)
+        agent_account = Account.from_key(params.agentPrivateKey)
         
         # Sign with agent account
         agent_signature = sign_action(
@@ -69,11 +69,11 @@ class ExchangeClient:
         
         # Prepare params for API
         params_dict = {
-            "agentName": params.agent_name,
+            "agentName": params.agentName,
             "agent": params.agent,
-            "forAccount": params.for_account if params.for_account else "",
+            "forAccount": params.forAccount if params.forAccount else "",
             "signature": agent_signature,
-            "validUntil": params.valid_until,
+            "validUntil": params.validUntil,
             "nonce": nonce,
         }
         

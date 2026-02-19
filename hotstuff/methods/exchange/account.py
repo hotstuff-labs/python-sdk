@@ -9,13 +9,13 @@ from hotstuff.utils.address import validate_ethereum_address
 @dataclass
 class AddAgentParams:
     """Parameters for adding an agent."""
-    agent_name: str
+    agentName: str
     agent: str
-    for_account: str
-    valid_until: int
+    forAccount: str
+    validUntil: int
     signature: Optional[str] = None
     nonce: Optional[int] = None
-    agent_private_key: Optional[str] = None
+    agentPrivateKey: Optional[str] = None
     signer: Optional[str] = None
     
     def __post_init__(self):
@@ -31,7 +31,7 @@ class AddAgentParams:
 class RevokeAgentParams:
     """Parameters for revoking an agent."""
     agent: str
-    for_account: Optional[str] = None
+    forAccount: str
     nonce: Optional[int] = None
     
     def __post_init__(self):

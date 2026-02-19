@@ -20,12 +20,12 @@ def main():
 
     result = exchange.add_agent(
             AddAgentParams(
-                agent_name="python-sdk-demo-agent",
+                agentName="python-sdk-demo-agent",
                 agent=agent_account.address,
-                for_account="",
-                agent_private_key=agent_private_key,
+                forAccount="",
+                agentPrivateKey=agent_private_key,
                 signer=main_account.address,
-                valid_until=int(time.time() * 1000) + 3600000,
+                validUntil=int(time.time() * 1000) + 3600000,
             )
         )
         
