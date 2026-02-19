@@ -58,11 +58,11 @@ from hotstuff.methods.exchange.collateral import (
 from hotstuff.methods.exchange.account import (
     AddAgentParams, 
     RevokeAgentParams,
-     UpdatePerpInstrumentLeverageParams, 
-     ApproveBrokerFeeParams, 
-     CreateReferralCodeParams, 
-     SetReferrerParams, 
-     ClaimReferralRewardsParams,
+    UpdatePerpInstrumentLeverageParams, 
+    ApproveBrokerFeeParams, 
+    CreateReferralCodeParams, 
+    SetReferrerParams, 
+    ClaimReferralRewardsParams,
 )
 
 from hotstuff.methods.exchange.vault import (
@@ -73,16 +73,24 @@ from hotstuff.methods.exchange.vault import (
 
 # Market data types (clean imports without 'global' keyword)
 from hotstuff.methods.info.market import (
+    OracleParams,
+    OracleResponse,
+    SupportedCollateralParams,
+    SupportedCollateral,
+    InstrumentsParams,
+    InstrumentsResponse,
     TickerParams,
     Ticker,
     OrderbookParams,
     OrderbookResponse,
-    InstrumentsParams,
-    InstrumentsResponse,
     TradesParams,
     Trade,
-    OracleParams,
-    OracleResponse,
+    MidsParams,
+    Mid,
+    BBOParams,
+    BBO,
+    ChartParams,
+    ChartPoint,
 )
 
 # Subscription types (clean imports)
@@ -141,16 +149,24 @@ __all__ = [
     "DepositToVaultParams",
     "RedeemFromVaultParams",
     # Market Data Types
+    "OracleParams",
+    "OracleResponse",
+    "SupportedCollateralParams",
+    "SupportedCollateral",
+    "InstrumentsParams",
+    "InstrumentsResponse",
     "TickerParams",
     "Ticker",
     "OrderbookParams",
     "OrderbookResponse",
-    "InstrumentsParams",
-    "InstrumentsResponse",
     "TradesParams",
     "Trade",
-    "OracleParams",
-    "OracleResponse",
+    "MidsParams",
+    "Mid",
+    "BBOParams",
+    "BBO",
+    "ChartParams",
+    "ChartPoint",
     # Subscription Types
     "TickerSubscriptionParams",
     "TradeSubscriptionParams",

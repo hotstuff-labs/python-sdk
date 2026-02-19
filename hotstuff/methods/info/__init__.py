@@ -1,13 +1,11 @@
 """Info method types organized by category."""
-import importlib
-
-GlobalInfoMethods = importlib.import_module("hotstuff.methods.info.global")
-AccountInfoMethods = importlib.import_module("hotstuff.methods.info.account")
-VaultInfoMethods = importlib.import_module("hotstuff.methods.info.vault")
-ExplorerInfoMethods = importlib.import_module("hotstuff.methods.info.explorer")
+from hotstuff.methods.info import market as MarketInfoMethods
+from hotstuff.methods.info import account as AccountInfoMethods
+from hotstuff.methods.info import vault as VaultInfoMethods
+from hotstuff.methods.info import explorer as ExplorerInfoMethods
 
 __all__ = [
-    "GlobalInfoMethods",
+    "MarketInfoMethods",
     "AccountInfoMethods",
     "VaultInfoMethods",
     "ExplorerInfoMethods",

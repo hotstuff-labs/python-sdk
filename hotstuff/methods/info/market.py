@@ -1,6 +1,6 @@
 """Market info method types (public/global market data)."""
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional, Union
+from typing import List, Literal, Optional
 
 
 # Oracle Method
