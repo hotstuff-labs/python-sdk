@@ -297,7 +297,18 @@ class InfoClient:
         """Get specific block details."""
         request = {"method": "block", "params": self._to_dict(params)}
         response = self.transport.request("explorer", request, signal)
-        return EM.BlockDetailsResponse(**response)
+        # Parse nested transactions
+        transactions = [EM.BlockTransaction(**tx) for tx in response.get("transactions", [])]
+        return EM.BlockDetailsResponse(
+            block_height=response.get("block_height", 0),
+            block_hash=response.get("block_hash", ""),
+            parent_hash=response.get("parent_hash", ""),
+            change_log_hash=response.get("change_log_hash", ""),
+            timestamp=response.get("timestamp", 0),
+            tx_count=response.get("tx_count", 0),
+            created_at=response.get("created_at", 0),
+            transactions=transactions,
+        )
     
     def transactions(
         self, params: EM.TransactionsParams, signal: Optional[Any] = None

@@ -1,6 +1,6 @@
 """Explorer info method types."""
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 
 # Blocks Method
@@ -26,9 +26,29 @@ class BlockDetailsParams:
 
 
 @dataclass
+class BlockTransaction:
+    """Transaction within a block."""
+    tx_hash: str
+    account: str
+    block_height: int
+    block_hash: str
+    tx_type: int
+    success: bool
+    timestamp: int
+    created_at: int
+
+
+@dataclass
 class BlockDetailsResponse:
     """Block details response."""
-    pass
+    block_height: int
+    block_hash: str
+    parent_hash: str
+    change_log_hash: str
+    timestamp: int
+    tx_count: int
+    created_at: int
+    transactions: List[BlockTransaction] = field(default_factory=list)
 
 
 # Transactions Method
@@ -63,4 +83,11 @@ class TransactionDetailsParams:
 @dataclass
 class TransactionDetailsResponse:
     """Transaction details response."""
-    pass
+    tx_hash: str
+    account: str
+    block_height: int
+    block_hash: str
+    tx_type: int
+    success: bool
+    timestamp: int
+    created_at: int
