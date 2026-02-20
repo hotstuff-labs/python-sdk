@@ -124,6 +124,15 @@ from hotstuff.methods.info.account import (
     AccountInfoResponse,
 )
 
+from hotstuff.methods.info.vault import (
+    VaultsParams,
+    VaultsResponse,
+    SubVaultsParams,
+    SubVaultsResponse,
+    VaultBalancesParams,
+    VaultBalancesResponse,
+)
+
 # Subscription types (clean imports)
 from hotstuff.methods.subscription.channels import (
     TickerSubscriptionParams,
@@ -226,6 +235,13 @@ __all__ = [
     "Agent",
     "AccountInfoParams",
     "AccountInfoResponse",
+    # Vault Data Types
+    "VaultsParams",
+    "VaultsResponse",
+    "SubVaultsParams",
+    "SubVaultsResponse",
+    "VaultBalancesParams",
+    "VaultBalancesResponse",
     # Subscription Types
     "TickerSubscriptionParams",
     "TradeSubscriptionParams",

@@ -253,7 +253,9 @@ class InfoClient:
         """Get all vaults."""
         request = {"method": "vaults", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return VM.VaultsResponse(**response)
+        # Parse nested vault objects
+        vaults_list = response.get("vaults", []) if isinstance(response, dict) else []
+        return VM.VaultsResponse(vaults=[VM.Vault(**v) for v in vaults_list])
     
     def sub_vaults(
         self, params: VM.SubVaultsParams, signal: Optional[Any] = None
@@ -261,7 +263,10 @@ class InfoClient:
         """Get sub-vaults for a specific vault."""
         request = {"method": "subVaults", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return VM.SubVaultsResponse(**response)
+        # API returns a list directly
+        if isinstance(response, list):
+            return [VM.SubVault(**item) for item in response]
+        return []
     
     def vault_balances(
         self, params: VM.VaultBalancesParams, signal: Optional[Any] = None
@@ -269,7 +274,12 @@ class InfoClient:
         """Get vault balances."""
         request = {"method": "vaultBalance", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return VM.VaultBalancesResponse(**response)
+        # API returns single VaultBalance if user is passed, List[VaultBalance] otherwise
+        if isinstance(response, list):
+            return [VM.VaultBalance(**item) for item in response]
+        elif isinstance(response, dict):
+            return VM.VaultBalance(**response)
+        return []
     
     # Explorer Info Endpoints
     
