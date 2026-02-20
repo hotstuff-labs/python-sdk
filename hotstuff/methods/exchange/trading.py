@@ -1,95 +1,146 @@
 """Trading exchange method types."""
-from typing import List, Literal, Optional
-from pydantic import BaseModel, Field, ConfigDict, field_validator, field_serializer
-
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Literal, Optional
+import time
 from hotstuff.utils.address import validate_ethereum_address
 
 
 # Place Order Method
-class UnitOrder(BaseModel):
+@dataclass
+class UnitOrder:
     """Single order unit."""
-    instrument_id: int = Field(..., gt=0, alias="instrumentId", description="Instrument ID")
-    side: Literal["b", "s"] = Field(..., description="Order side: 'b' for buy, 's' for sell")
-    position_side: Literal["LONG", "SHORT", "BOTH"] = Field(..., alias="positionSide", description="Position side")
-    price: str = Field(..., description="Order price")
-    size: str = Field(..., description="Order size")
-    tif: Literal["GTC", "IOC", "FOK"] = Field(..., description="Time in force")
-    ro: bool = Field(..., description="Reduce-only flag")
-    po: bool = Field(..., description="Post-only flag")
-    cloid: Optional[str] = Field(None, description="Client order ID (optional)")
-    trigger_px: Optional[str] = Field(None, alias="triggerPx", description="Trigger price")
-    is_market: Optional[bool] = Field(None, alias="isMarket", description="Market order flag")
-    tpsl: Optional[Literal["tp", "sl", ""]] = Field(None, description="Take profit/stop loss")
-    grouping: Optional[Literal["position", "normal", ""]] = Field(None, description="Order grouping")
-
-    model_config = ConfigDict(populate_by_name=True)
+    instrumentId: int
+    side: Literal["b", "s"]
+    positionSide: Literal["LONG", "SHORT", "BOTH"]
+    price: str
+    size: str
+    tif: Literal["GTC", "IOC", "FOK"]
+    ro: bool
+    po: bool
+    cloid: Optional[str] = None
+    triggerPx: Optional[str] = None
+    isMarket: Optional[bool] = None
+    tpsl: Optional[Literal["tp", "sl", ""]] = None
+    grouping: Optional[Literal["position", "normal", ""]] = None
     
-    @field_serializer('cloid', 'trigger_px', 'tpsl', 'grouping')
-    def serialize_optional_strings(self, value: Optional[str], _info) -> str:
-        """Convert None to empty string for optional string fields to match API expectations."""
-        return "" if value is None else value
+    def __post_init__(self):
+        """Validate instrument_id."""
+        if self.instrumentId <= 0:
+            raise ValueError("instrumentId must be greater than 0")
+        if self.cloid is None:
+            self.cloid = generate_cloid()
+        if self.triggerPx is None:
+            self.triggerPx = ""
+        if self.isMarket is None:
+            self.isMarket = False
+        if self.tpsl is None:
+            self.tpsl = ""
+        if self.grouping is None:
+            self.grouping = ""
+    
+    def to_api_dict(self) -> Dict[str, Any]:
+        """Convert to API dict."""
+        return {
+            "instrumentId": self.instrumentId,
+            "side": self.side,
+            "positionSide": self.positionSide,
+            "price": self.price,
+            "size": self.size,
+            "tif": self.tif,
+            "ro": self.ro,
+            "po": self.po,
+            "cloid": self.cloid,
+            "triggerPx": self.triggerPx,
+            "isMarket": self.isMarket,
+            "tpsl": self.tpsl,
+            "grouping": self.grouping,
+        }
 
 
-class BrokerConfig(BaseModel):
+@dataclass
+class BrokerConfig:
     """Broker configuration."""
-    broker: str = Field(..., description="Broker address")
-    fee: str = Field(..., description="Broker fee")
+    broker: str
+    fee: str
     
-    @field_validator('broker', mode='before')
-    @classmethod
-    def validate_broker_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the broker address."""
-        if v == "":
-            return v  # Allow empty string for no broker
-        return validate_ethereum_address(v)
+        if self.broker != "":
+            self.broker = validate_ethereum_address(self.broker)
+    
+    def to_api_dict(self) -> Dict[str, Any]:
+        """Convert to API dict."""
+        return {"broker": self.broker, "fee": self.fee}
 
 
-class PlaceOrderParams(BaseModel):
+@dataclass
+class PlaceOrderParams:
     """Parameters for placing an order."""
-    orders: List[UnitOrder] = Field(..., description="List of orders to place")
-    expires_after: int = Field(..., alias="expiresAfter", description="Expiration timestamp")
-    broker_config: Optional[BrokerConfig] = Field(None, alias="brokerConfig", description="Broker configuration")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    orders: List[UnitOrder]
+    expiresAfter: int
+    brokerConfig: Optional[BrokerConfig] = None
+    nonce: Optional[int] = None
+    
+    def to_api_dict(self) -> Dict[str, Any]:
+        """Convert to API dict, omitting None values."""
+        result = {
+            "orders": [order.to_api_dict() for order in self.orders],
+            "expiresAfter": self.expiresAfter,
+        }
+        if self.brokerConfig is not None:
+            result["brokerConfig"] = self.brokerConfig.to_api_dict()
+        return result
 
 
 # Cancel By Oid Method
-class UnitCancelByOrderId(BaseModel):
+@dataclass
+class UnitCancelByOrderId:
     """Cancel by order ID unit."""
-    oid: int = Field(..., description="Order ID")
-    instrumentId: int = Field(...,  gt=0, description="Instrument ID")
+    oid: int
+    instrumentId: int
+    
+    def __post_init__(self):
+        """Validate instrumentId."""
+        if self.instrumentId <= 0:
+            raise ValueError("instrumentId must be greater than 0")
 
 
-class CancelByOidParams(BaseModel):
+@dataclass
+class CancelByOidParams:
     """Parameters for cancelling by order ID."""
-    cancels: List[UnitCancelByOrderId] = Field(..., description="List of orders to cancel")
-    expires_after: int = Field(..., alias="expiresAfter", description="Expiration timestamp")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    cancels: List[UnitCancelByOrderId]
+    expiresAfter: int
+    nonce: Optional[int] = None
 
 
 # Cancel By Cloid Method
-class UnitCancelByClOrderId(BaseModel):
+@dataclass
+class UnitCancelByClOrderId:
     """Cancel by client order ID unit."""
-    cloid: str = Field(..., description="Client order ID")
-    instrument_id: int = Field(..., gt=0, description="Instrument ID")
+    cloid: str
+    instrumentId: int
+    
+    def __post_init__(self):
+        """Validate instrument_id."""
+        if self.instrumentId <= 0:
+            raise ValueError("instrument_id must be greater than 0")
 
 
-class CancelByCloidParams(BaseModel):
+@dataclass
+class CancelByCloidParams:
     """Parameters for cancelling by client order ID."""
-    cancels: List[UnitCancelByClOrderId] = Field(..., description="List of orders to cancel")
-    expires_after: int = Field(..., alias="expiresAfter", description="Expiration timestamp")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    cancels: List[UnitCancelByClOrderId]
+    expiresAfter: int
+    nonce: Optional[int] = None
 
 
 # Cancel All Method
-class CancelAllParams(BaseModel):
+@dataclass
+class CancelAllParams:
     """Parameters for cancelling all orders."""
-    expires_after: int = Field(..., alias="expiresAfter", description="Expiration timestamp")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
+    expiresAfter: int
+    nonce: Optional[int] = None
 
-    model_config = ConfigDict(populate_by_name=True)
+
+def generate_cloid():
+    return f"cloid-{int(time.time())}"

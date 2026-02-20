@@ -1,6 +1,6 @@
 """Subscription channel method types."""
+from dataclasses import dataclass, field
 from typing import List, Literal, Optional
-from pydantic import BaseModel, Field, field_validator
 
 from hotstuff.utils.address import validate_ethereum_address
 
@@ -11,64 +11,67 @@ SupportedChartTypes = Literal["mark", "ltp", "index"]
 
 
 # Subscription parameter types
-class TickerSubscriptionParams(BaseModel):
+@dataclass
+class TickerSubscriptionParams:
     """Parameters for ticker subscription."""
-    symbol: str = Field(..., description="Trading pair symbol")
+    symbol: str
 
 
-class MidsSubscriptionParams(BaseModel):
+@dataclass
+class MidsSubscriptionParams:
     """Parameters for mids subscription."""
-    symbol: str = Field(..., description="Trading pair symbol")
+    symbol: str
 
 
-class BBOSubscriptionParams(BaseModel):
+@dataclass
+class BBOSubscriptionParams:
     """Parameters for BBO subscription."""
-    symbol: str = Field(..., description="Trading pair symbol")
+    symbol: str
 
 
-class OrderbookSubscriptionParams(BaseModel):
+@dataclass
+class OrderbookSubscriptionParams:
     """Parameters for orderbook subscription."""
-    instrument_id: str = Field(..., description="Instrument ID")
+    instrument_id: str
 
 
-class TradeSubscriptionParams(BaseModel):
+@dataclass
+class TradeSubscriptionParams:
     """Parameters for trade subscription."""
-    instrument_id: str = Field(..., description="Instrument ID")
+    instrument_id: str
 
 
-class ChartSubscriptionParams(BaseModel):
+@dataclass
+class ChartSubscriptionParams:
     """Parameters for chart subscription."""
-    symbol: str = Field(..., description="Trading pair symbol")
-    chart_type: SupportedChartTypes = Field(..., description="Chart type")
-    resolution: SupportedChartResolutions = Field(..., description="Chart resolution")
+    symbol: str
+    chart_type: SupportedChartTypes
+    resolution: SupportedChartResolutions
 
 
-class AccountOrderUpdatesParams(BaseModel):
+@dataclass
+class AccountOrderUpdatesParams:
     """Parameters for account order updates subscription."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
     
-    # Alias for backward compatibility
     @property
     def address(self) -> str:
         """Alias for user field (deprecated)."""
         return self.user
 
 
-class AccountBalanceUpdatesParams(BaseModel):
+@dataclass
+class AccountBalanceUpdatesParams:
     """Parameters for account balance updates subscription."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
     
     @property
     def address(self) -> str:
@@ -76,15 +79,14 @@ class AccountBalanceUpdatesParams(BaseModel):
         return self.user
 
 
-class PositionsSubscriptionParams(BaseModel):
+@dataclass
+class PositionsSubscriptionParams:
     """Parameters for positions subscription."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
     
     @property
     def address(self) -> str:
@@ -92,15 +94,14 @@ class PositionsSubscriptionParams(BaseModel):
         return self.user
 
 
-class FillsSubscriptionParams(BaseModel):
+@dataclass
+class FillsSubscriptionParams:
     """Parameters for fills subscription."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
     
     @property
     def address(self) -> str:
@@ -108,60 +109,65 @@ class FillsSubscriptionParams(BaseModel):
         return self.user
 
 
-class AccountSummarySubscriptionParams(BaseModel):
+@dataclass
+class AccountSummarySubscriptionParams:
     """Parameters for account summary subscription."""
-    user: str = Field(..., description="User address")
+    user: str
     
-    @field_validator('user', mode='before')
-    @classmethod
-    def validate_user(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the user address."""
-        return validate_ethereum_address(v)
+        self.user = validate_ethereum_address(self.user)
 
 
-class BlocksSubscriptionParams(BaseModel):
+@dataclass
+class BlocksSubscriptionParams:
     """Parameters for blocks subscription."""
     pass
 
 
-class TransactionsSubscriptionParams(BaseModel):
+@dataclass
+class TransactionsSubscriptionParams:
     """Parameters for transactions subscription."""
     pass
 
 
 # Orderbook subscription
-class OrderbookItem(BaseModel):
+@dataclass
+class OrderbookItem:
     """Orderbook item."""
     price: float
     size: float
     amount: Optional[float] = None
 
 
-class Orderbook(BaseModel):
+@dataclass
+class Orderbook:
     """Orderbook subscription data."""
     instrument_id: str
-    instrument_name: Optional[str] = None
     asks: List[OrderbookItem]
     bids: List[OrderbookItem]
     timestamp: int
+    instrument_name: Optional[str] = None
 
 
 # Trade subscription
-class Trade(BaseModel):
+@dataclass
+class Trade:
     """Trade subscription data."""
     id: str
     instrument: str
-    instrument_name: Optional[str] = None
     maker: str
     taker: str
     price: float
     size: float
     timestamp: int
     side: Literal["buy", "sell"]
+    instrument_name: Optional[str] = None
 
 
 # Order update subscription
-class OrderUpdate(BaseModel):
+@dataclass
+class OrderUpdate:
     """Order update subscription data."""
     id: str
     account: str
@@ -174,7 +180,8 @@ class OrderUpdate(BaseModel):
 
 
 # Account balance update subscription
-class BalanceItem(BaseModel):
+@dataclass
+class BalanceItem:
     """Balance item."""
     asset: str
     total: float
@@ -182,7 +189,8 @@ class BalanceItem(BaseModel):
     locked: float
 
 
-class AccountBalanceUpdate(BaseModel):
+@dataclass
+class AccountBalanceUpdate:
     """Account balance update subscription data."""
     account: str
     balances: List[BalanceItem]
@@ -190,7 +198,8 @@ class AccountBalanceUpdate(BaseModel):
 
 
 # Chart update subscription
-class ChartUpdate(BaseModel):
+@dataclass
+class ChartUpdate:
     """Chart update subscription data."""
     open: float
     high: float

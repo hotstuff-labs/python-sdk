@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hotstuff-python-sdk"
-version = "0.0.1-beta.10"
+version = "0.0.1-beta.11"
 description = "Python SDK for interacting with Hotstuff L1"
 authors = ["hotstuff"]
 license = "MIT"
@@ -24,17 +24,15 @@ packages = [{ include = "hotstuff" }]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-aiohttp = "^3.9.0"
-websockets = "^12.0"
+requests = "^2.31.0"
+websocket-client = "^1.6.0"
 eth-account = "^0.11.0"
 eth-utils = "^4.0.0"
 msgpack = "^1.0.0"
 web3 = "^6.0.0"
-pydantic = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"
-pytest-asyncio = "^0.21.0"
 black = "^23.0.0"
 mypy = "^1.0.0"
 
@@ -54,7 +52,6 @@ warn_unused_configs = true
 disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
 testpaths = ["tests"]
 markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",

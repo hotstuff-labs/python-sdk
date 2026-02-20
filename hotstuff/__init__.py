@@ -3,7 +3,7 @@
 A Python SDK for interacting with Hotstuff L1.
 """
 
-__version__ = "0.0.1-beta.10"
+__version__ = "0.0.1-beta.11"
 
 # Transports
 from hotstuff.transports import HttpTransport, WebSocketTransport
@@ -18,7 +18,7 @@ from hotstuff.types import (
 )
 
 # Utils
-from hotstuff.utils import NonceManager, sign_action, EXCHANGE_OP_CODES
+from hotstuff.utils import NonceManager, sign_action
 
 # Exceptions
 from hotstuff.exceptions import (
@@ -40,25 +40,110 @@ from hotstuff.methods.exchange.trading import (
     UnitOrder,
     BrokerConfig,
     PlaceOrderParams,
+    UnitCancelByOrderId,
+    UnitCancelByClOrderId,
     CancelByOidParams,
     CancelByCloidParams,
     CancelAllParams,
 )
-from hotstuff.methods.exchange.account import AddAgentParams
+
+from hotstuff.methods.exchange.collateral import (
+    AccountSpotWithdrawRequestParams,
+    AccountDerivativeWithdrawRequestParams,
+    AccountSpotBalanceTransferRequestParams,
+    AccountDerivativeBalanceTransferRequestParams,
+    AccountInternalBalanceTransferRequestParams,
+)
+
+from hotstuff.methods.exchange.account import (
+    AddAgentParams, 
+    RevokeAgentParams,
+    UpdatePerpInstrumentLeverageParams, 
+    ApproveBrokerFeeParams, 
+    CreateReferralCodeParams, 
+    SetReferrerParams, 
+    ClaimReferralRewardsParams,
+)
+
+from hotstuff.methods.exchange.vault import (
+    DepositToVaultParams,
+    RedeemFromVaultParams,
+)
+
 
 # Market data types (clean imports without 'global' keyword)
 from hotstuff.methods.info.market import (
+    OracleParams,
+    OracleResponse,
+    SupportedCollateralParams,
+    SupportedCollateral,
+    InstrumentsParams,
+    InstrumentsResponse,
     TickerParams,
     Ticker,
     OrderbookParams,
     OrderbookResponse,
-    InstrumentsParams,
-    InstrumentsResponse,
     TradesParams,
     Trade,
-    OracleParams,
-    OracleResponse,
+    MidsParams,
+    Mid,
+    BBOParams,
+    BBO,
+    ChartParams,
+    ChartPoint,
 )
+
+# Account data types (clean imports without 'global' keyword)
+from hotstuff.methods.info.account import (
+    OpenOrdersParams,
+    OpenOrdersResponse,
+    PositionsParams,
+    Position,
+    AccountSummaryParams,
+    AccountSummaryResponse,
+    ReferralSummaryParams,
+    ReferralSummaryResponse,
+    UserFeeInfoParams,
+    UserFeeInfoResponse,
+    AccountHistoryParams,
+    AccountHistoryResponse,
+    OrderHistoryParams,
+    OrderHistoryResponse,
+    FillsParams,
+    FillsResponse,
+    FundingHistoryParams,
+    FundingHistoryResponse,
+    TransferHistoryParams,
+    TransferHistoryResponse,
+    InstrumentLeverageParams,
+    InstrumentLeverageResponse,
+    AgentsParams,
+    AgentsResponse,
+    Agent,
+    AccountInfoParams,
+    AccountInfoResponse,
+)
+
+from hotstuff.methods.info.vault import (
+    VaultsParams,
+    VaultsResponse,
+    SubVaultsParams,
+    SubVaultsResponse,
+    VaultBalancesParams,
+    VaultBalancesResponse,
+)
+
+from hotstuff.methods.info.explorer import (
+    BlocksParams,
+    BlocksResponse,
+    BlockDetailsParams,
+    BlockDetailsResponse,
+    TransactionsParams,
+    TransactionsResponse,
+    TransactionDetailsParams,
+    TransactionDetailsResponse,
+)
+
 
 # Subscription types (clean imports)
 from hotstuff.methods.subscription.channels import (
@@ -93,24 +178,91 @@ __all__ = [
     "HotstuffWebSocketError",
     "HotstuffSubscriptionError",
     # Exchange Method Types
+    "AddAgentParams",
+    "RevokeAgentParams",
+    "UpdatePerpInstrumentLeverageParams",
+    "ApproveBrokerFeeParams",
+    "CreateReferralCodeParams",
+    "SetReferrerParams",
+    "ClaimReferralRewardsParams",
     "UnitOrder",
     "BrokerConfig",
     "PlaceOrderParams",
     "CancelByOidParams",
     "CancelByCloidParams",
     "CancelAllParams",
-    "AddAgentParams",
+    "UnitCancelByOrderId",
+    "UnitCancelByClOrderId",
+    "AccountSpotWithdrawRequestParams",
+    "AccountDerivativeWithdrawRequestParams",
+    "AccountSpotBalanceTransferRequestParams",
+    "AccountDerivativeBalanceTransferRequestParams",
+    "AccountInternalBalanceTransferRequestParams",
+    "DepositToVaultParams",
+    "RedeemFromVaultParams",
     # Market Data Types
+    "OracleParams",
+    "OracleResponse",
+    "SupportedCollateralParams",
+    "SupportedCollateral",
+    "InstrumentsParams",
+    "InstrumentsResponse",
     "TickerParams",
     "Ticker",
     "OrderbookParams",
     "OrderbookResponse",
-    "InstrumentsParams",
-    "InstrumentsResponse",
     "TradesParams",
     "Trade",
-    "OracleParams",
-    "OracleResponse",
+    "MidsParams",
+    "Mid",
+    "BBOParams",
+    "BBO",
+    "ChartParams",
+    "ChartPoint",
+    # Account Data Types
+    "OpenOrdersParams",
+    "OpenOrdersResponse",
+    "PositionsParams",
+    "Position",
+    "AccountSummaryParams",
+    "AccountSummaryResponse",
+    "ReferralSummaryParams",
+    "ReferralSummaryResponse",
+    "UserFeeInfoParams",
+    "UserFeeInfoResponse",
+    "AccountHistoryParams",
+    "AccountHistoryResponse",
+    "OrderHistoryParams",
+    "OrderHistoryResponse",
+    "FillsParams",
+    "FillsResponse",
+    "FundingHistoryParams",
+    "FundingHistoryResponse",
+    "TransferHistoryParams",
+    "TransferHistoryResponse",
+    "InstrumentLeverageParams",
+    "InstrumentLeverageResponse",
+    "AgentsParams",
+    "AgentsResponse",
+    "Agent",
+    "AccountInfoParams",
+    "AccountInfoResponse",
+    # Vault Data Types
+    "VaultsParams",
+    "VaultsResponse",
+    "SubVaultsParams",
+    "SubVaultsResponse",
+    "VaultBalancesParams",
+    "VaultBalancesResponse",
+    # Explorer Data Types
+    "BlocksParams",
+    "BlocksResponse",
+    "BlockDetailsParams",
+    "BlockDetailsResponse",
+    "TransactionsParams",
+    "TransactionsResponse",
+    "TransactionDetailsParams",
+    "TransactionDetailsResponse",
     # Subscription Types
     "TickerSubscriptionParams",
     "TradeSubscriptionParams",

@@ -9,7 +9,7 @@ class NonceManager:
         """Initialize the nonce manager."""
         self._last_nonce = 0
     
-    async def get_nonce(self) -> int:
+    def get_nonce(self) -> int:
         """
         Get a new nonce.
         
@@ -22,4 +22,3 @@ class NonceManager:
         else:
             self._last_nonce = current_time
         return self._last_nonce
-

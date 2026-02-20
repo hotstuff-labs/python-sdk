@@ -1,5 +1,6 @@
 """Exchange API client for trading operations."""
-from typing import Optional, Any, Dict, Callable, Awaitable
+from typing import Optional, Any, Dict, Callable
+from dataclasses import asdict
 from eth_account import Account
 
 from hotstuff.utils import sign_action, NonceManager
@@ -10,6 +11,8 @@ from hotstuff.methods.exchange import (
     vault as VM,
 )
 from hotstuff.methods.exchange.op_codes import EXCHANGE_OP_CODES
+from hotstuff.transports import HttpTransport, WebSocketTransport
+from hotstuff.types import HttpTransportOptions, WebSocketTransportOptions
 
 
 class ExchangeClient:
@@ -17,9 +20,10 @@ class ExchangeClient:
     
     def __init__(
         self,
-        transport,
         wallet: Account,
-        nonce: Optional[Callable[[], Awaitable[int]]] = None
+        nonce: Optional[Callable[[], int]] = None,
+        websocket: bool = False,
+        is_testnet: bool = False
     ):
         """
         Initialize ExchangeClient.
@@ -29,13 +33,21 @@ class ExchangeClient:
             wallet: The wallet/account for signing
             nonce: Optional nonce generator function
         """
-        self.transport = transport
+        self.websocket = websocket
+        if websocket:
+            self.transport = WebSocketTransport(WebSocketTransportOptions(is_testnet=is_testnet))
+        else:
+            self.transport = HttpTransport(HttpTransportOptions(is_testnet=is_testnet))
         self.wallet = wallet
         self.nonce = nonce or NonceManager().get_nonce
     
+    def _to_dict(self, obj) -> dict:
+        """Convert dataclass to dict."""
+        return asdict(obj)
+    
     # Account Actions
     
-    async def add_agent(
+    def add_agent(
         self,
         params: AM.AddAgentParams,
         signal: Optional[Any] = None
@@ -50,13 +62,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        nonce = await self.nonce()
+        nonce = self.nonce()
         
         # Create agent account from private key
-        agent_account = Account.from_key(params.agent_private_key)
+        agent_account = Account.from_key(params.agentPrivateKey)
         
         # Sign with agent account
-        agent_signature = await sign_action(
+        agent_signature = sign_action(
             wallet=agent_account,
             action={
                 "signer": params.signer,
@@ -68,20 +80,20 @@ class ExchangeClient:
         
         # Prepare params for API
         params_dict = {
-            "agentName": params.agent_name,
+            "agentName": params.agentName,
             "agent": params.agent,
-            "forAccount": params.for_account if params.for_account else "",
+            "forAccount": params.forAccount if params.forAccount else "",
             "signature": agent_signature,
-            "validUntil": params.valid_until,
+            "validUntil": params.validUntil,
             "nonce": nonce,
         }
         
-        return await self._execute_action(
+        return self._execute_action(
             {"action": "addAgent", "params": params_dict},
             signal
         )
 
-    async def revoke_agent(
+    def revoke_agent(
         self,
         params: AM.RevokeAgentParams,
         signal: Optional[Any] = None
@@ -96,13 +108,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "revokeAgent", "params": params_dict},
             signal
         )
 
-    async def update_perp_instrument_leverage(
+    def update_perp_instrument_leverage(
         self,
         params: AM.UpdatePerpInstrumentLeverageParams,
         signal: Optional[Any] = None
@@ -117,13 +129,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "updatePerpInstrumentLeverage", "params": params_dict},
             signal
         )
 
-    async def approve_broker_fee(
+    def approve_broker_fee(
         self,
         params: AM.ApproveBrokerFeeParams,
         signal: Optional[Any] = None
@@ -138,13 +150,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "approveBrokerFee", "params": params_dict},
             signal
         )
 
-    async def create_referral_code(
+    def create_referral_code(
         self,
         params: AM.CreateReferralCodeParams,
         signal: Optional[Any] = None
@@ -159,13 +171,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "createReferralCode", "params": params_dict},
             signal
         )
 
-    async def set_referrer(
+    def set_referrer(
         self,
         params: AM.SetReferrerParams,
         signal: Optional[Any] = None
@@ -180,13 +192,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "setReferrer", "params": params_dict},
             signal
         )
 
-    async def claim_referral_rewards(
+    def claim_referral_rewards(
         self,
         params: AM.ClaimReferralRewardsParams,
         signal: Optional[Any] = None
@@ -201,15 +213,15 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "claimReferralRewards", "params": params_dict},
             signal
         )
     
     # Trading Actions
     
-    async def place_order(
+    def place_order(
         self,
         params: TM.PlaceOrderParams,
         signal: Optional[Any] = None
@@ -224,23 +236,20 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        # Convert to dict with proper aliases, ensuring nested models are converted
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        # Reorder dict to match original SDK order for consistent msgpack encoding
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
         ordered_params = {
             "orders": params_dict["orders"],
             "brokerConfig": params_dict.get("brokerConfig"),
             "expiresAfter": params_dict["expiresAfter"],
         }
-        # Remove None brokerConfig if not provided
         if ordered_params["brokerConfig"] is None:
             ordered_params.pop("brokerConfig")
-        return await self._execute_action(
+        return self._execute_action(
             {"action": "placeOrder", "params": ordered_params},
             signal
         )
     
-    async def cancel_by_oid(
+    def cancel_by_oid(
         self,
         params: TM.CancelByOidParams,
         signal: Optional[Any] = None
@@ -255,13 +264,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "cancelByOid", "params": params_dict},
             signal
         )
     
-    async def cancel_by_cloid(
+    def cancel_by_cloid(
         self,
         params: TM.CancelByCloidParams,
         signal: Optional[Any] = None
@@ -276,13 +285,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "cancelByCloid", "params": params_dict},
             signal
         )
     
-    async def cancel_all(
+    def cancel_all(
         self,
         params: TM.CancelAllParams,
         signal: Optional[Any] = None
@@ -297,15 +306,15 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "cancelAll", "params": params_dict},
             signal
         )
 
     # Collateral Transfer Methods
 
-    async def account_spot_withdraw_request(
+    def account_spot_withdraw_request(
         self,
         params: CM.AccountSpotWithdrawRequestParams,
         signal: Optional[Any] = None
@@ -320,13 +329,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "accountSpotWithdrawRequest", "params": params_dict},
             signal
         )
 
-    async def account_derivative_withdraw_request(
+    def account_derivative_withdraw_request(
         self,
         params: CM.AccountDerivativeWithdrawRequestParams,
         signal: Optional[Any] = None
@@ -341,13 +350,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "accountDerivativeWithdrawRequest", "params": params_dict},
             signal
         )
 
-    async def account_spot_balance_transfer_request(
+    def account_spot_balance_transfer_request(
         self,
         params: CM.AccountSpotBalanceTransferRequestParams,
         signal: Optional[Any] = None
@@ -362,13 +371,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "accountSpotBalanceTransferRequest", "params": params_dict},
             signal
         )
 
-    async def account_derivative_balance_transfer_request(
+    def account_derivative_balance_transfer_request(
         self,
         params: CM.AccountDerivativeBalanceTransferRequestParams,
         signal: Optional[Any] = None
@@ -383,13 +392,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "accountDerivativeBalanceTransferRequest", "params": params_dict},
             signal
         )
 
-    async def account_internal_balance_transfer_request(
+    def account_internal_balance_transfer_request(
         self,
         params: CM.AccountInternalBalanceTransferRequestParams,
         signal: Optional[Any] = None
@@ -404,15 +413,15 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "accountInternalBalanceTransferRequest", "params": params_dict},
             signal
         )
 
     # Vault Methods
 
-    async def deposit_to_vault(
+    def deposit_to_vault(
         self,
         params: VM.DepositToVaultParams,
         signal: Optional[Any] = None
@@ -427,13 +436,13 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "depositToVault", "params": params_dict},
             signal
         )
 
-    async def redeem_from_vault(
+    def redeem_from_vault(
         self,
         params: VM.RedeemFromVaultParams,
         signal: Optional[Any] = None
@@ -448,15 +457,31 @@ class ExchangeClient:
         Returns:
             Response from the server
         """
-        params_dict = params.model_dump(by_alias=True, exclude={"nonce"}, mode='python')
-        return await self._execute_action(
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
             {"action": "redeemFromVault", "params": params_dict},
             signal
         )
     
     # Private Methods
     
-    async def _execute_action(
+    def _to_api_dict(self, obj, exclude=None) -> Dict[str, Any]:
+        """Convert dataclass to dict, excluding specified fields."""
+        exclude = exclude or set()
+        result = {}
+        for key, value in asdict(obj).items():
+            if key not in exclude:
+                # Handle nested dataclasses (lists of dataclasses)
+                if isinstance(value, list):
+                    result[key] = [
+                        asdict(item) if hasattr(item, '__dataclass_fields__') else item
+                        for item in value
+                    ]
+                else:
+                    result[key] = value
+        return result
+    
+    def _execute_action(
         self,
         request: Dict[str, Any],
         signal: Optional[Any] = None,
@@ -478,10 +503,10 @@ class ExchangeClient:
         
         # Set nonce if not present
         if "nonce" not in params or params["nonce"] is None:
-            params["nonce"] = await self.nonce()
+            params["nonce"] = self.nonce()
         
         # Sign the action
-        signature = await sign_action(
+        signature = sign_action(
             wallet=self.wallet,
             action=params,
             tx_type=EXCHANGE_OP_CODES[action],
@@ -490,7 +515,7 @@ class ExchangeClient:
         
         if execute:
             # Send to server
-            response = await self.transport.request(
+            response = self.transport.request(
                 "exchange",
                 {
                     "action": {

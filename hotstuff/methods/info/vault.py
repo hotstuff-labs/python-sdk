@@ -1,86 +1,88 @@
 """Vault info method types."""
-from typing import Optional, Annotated
-from pydantic import BaseModel, Field, field_validator
-from eth_utils import is_address, to_checksum_address
+from dataclasses import dataclass, field
+from typing import List, Optional, Union
 
-
-def validate_ethereum_address(value: str) -> str:
-    """
-    Validate and normalize an Ethereum address.
-    
-    Args:
-        value: The address string to validate
-        
-    Returns:
-        Checksummed address string
-        
-    Raises:
-        ValueError: If the address is invalid
-    """
-    if not isinstance(value, str):
-        raise ValueError(f"Address must be a string, got {type(value)}")
-    
-    if not is_address(value):
-        raise ValueError(f"Invalid Ethereum address: {value}")
-    
-    # Return checksummed address (EIP-55)
-    return to_checksum_address(value)
-
-
-# Type alias for validated Ethereum addresses (similar to viem's Address type)
-EthereumAddress = Annotated[
-    str,
-    Field(
-        ...,
-        description="Ethereum address (validated and checksummed)",
-        examples=["0x1234567890123456789012345678901234567890"],
-    ),
-]
+from hotstuff.utils.address import validate_ethereum_address
 
 
 # Vaults Method
-class VaultsParams(BaseModel):
+@dataclass
+class VaultsParams:
     """Parameters for vaults query."""
     pass
 
 
-class VaultsResponse(BaseModel):
+@dataclass
+class Vault:
+    """Vault information."""
+    vault_address: str
+    vault_manager: str
+    name: str
+    symbol: str
+    deposit_cap: str
+    role: int
+    underlying_asset_id: int
+    lock_in_period: int
+    commission: str
+    min_share_of_vm: str
+    created_at: int
+    allow_deposits: bool
+    always_close_on_withdraw: bool
+    is_closed: bool
+    updated_at: int
+
+
+@dataclass
+class VaultsResponse:
     """Vaults response."""
-    pass 
+    vaults: List[Vault] = field(default_factory=list)
 
 
 # Sub Vaults Method
-class SubVaultsParams(BaseModel):
+@dataclass
+class SubVaultsParams:
     """Parameters for sub vaults query."""
-    vault_address: EthereumAddress = Field(..., description="Vault address")
+    vaultAddress: str
     
-    @field_validator('vault_address', mode='before')
-    @classmethod
-    def validate_vault_address(cls, v: str) -> str:
+    def __post_init__(self):
         """Validate and checksum the vault address."""
-        return validate_ethereum_address(v)
+        self.vaultAddress = validate_ethereum_address(self.vaultAddress)
 
 
-class SubVaultsResponse(BaseModel):
-    """Sub vaults response."""
-    pass 
+@dataclass
+class SubVault:
+    """Sub vault information."""
+    vault_address: str
+    sub_vault_address: str
+    manager: str
+    created_at: int
+
+# Note: sub vaults endpoint returns List[SubVault] directly
+SubVaultsResponse = List[SubVault]
 
 
 # Vault Balances Method
-class VaultBalancesParams(BaseModel):
+@dataclass
+class VaultBalancesParams:
     """Parameters for vault balances query."""
-    vault_address: EthereumAddress = Field(..., description="Vault address")
-    user: Optional[EthereumAddress] = Field(None, description="User address")
+    vaultAddress: str
+    user: Optional[str] = None
     
-    @field_validator('vault_address', 'user', mode='before')
-    @classmethod
-    def validate_addresses(cls, v: Optional[str]) -> Optional[str]:
+    def __post_init__(self):
         """Validate and checksum Ethereum addresses."""
-        if v is None:
-            return None
-        return validate_ethereum_address(v)
+        self.vaultAddress = validate_ethereum_address(self.vaultAddress)
+        if self.user:
+            self.user = validate_ethereum_address(self.user)
 
 
-class VaultBalancesResponse(BaseModel):
-    """Vault balances response."""
-    pass 
+@dataclass
+class VaultBalance:
+    """Vault balance entry."""
+    vault_address: str
+    account: str
+    amount: str
+    shares: str
+    updated_at: int
+
+# Note: vault balances endpoint returns VaultBalance if user is passed, List[VaultBalance] otherwise
+VaultBalancesResponse = Union[VaultBalance, List[VaultBalance]]

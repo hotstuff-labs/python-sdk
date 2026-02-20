@@ -1,98 +1,86 @@
 """Account exchange method types."""
+from dataclasses import dataclass
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from hotstuff.utils.address import validate_ethereum_address
 
 
 # Add Agent Method
-class AddAgentParams(BaseModel):
+@dataclass
+class AddAgentParams:
     """Parameters for adding an agent."""
-    agent_name: str = Field(..., alias="agentName", description="Agent name")
-    agent: str = Field(..., description="Agent address")
-    for_account: str = Field(..., alias="forAccount", description="Account to add agent for")
-    signature: Optional[str] = Field(None, description="Agent signature")
-    valid_until: int = Field(..., alias="validUntil", description="Validity expiration timestamp")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-    agent_private_key: Optional[str] = Field(None, alias="agentPrivateKey", description="Agent private key")
-    signer: Optional[str] = Field(None, description="Signer address")
-
-    model_config = ConfigDict(populate_by_name=True)
+    agentName: str
+    agent: str
+    forAccount: str
+    validUntil: int
+    signature: Optional[str] = None
+    nonce: Optional[int] = None
+    agentPrivateKey: Optional[str] = None
+    signer: Optional[str] = None
     
-    @field_validator('agent', 'signer', mode='before')
-    @classmethod
-    def validate_addresses(cls, v: Optional[str]) -> Optional[str]:
+    def __post_init__(self):
         """Validate and checksum Ethereum addresses."""
-        if v is None or v == "":
-            return v
-        return validate_ethereum_address(v)
+        if self.agent:
+            self.agent = validate_ethereum_address(self.agent)
+        if self.signer:
+            self.signer = validate_ethereum_address(self.signer)
 
 
 # Revoke Agent Method
-class RevokeAgentParams(BaseModel):
+@dataclass
+class RevokeAgentParams:
     """Parameters for revoking an agent."""
-    agent: str = Field(..., description="Agent address")
-    for_account: Optional[str] = Field(None, alias="forAccount", description="Account to revoke agent for")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    @field_validator('agent', mode='before')
-    @classmethod
-    def validate_agent_address(cls, v: str) -> str:
+    agent: str
+    forAccount: str
+    nonce: Optional[int] = None
+    
+    def __post_init__(self):
         """Validate and checksum the agent address."""
-        return validate_ethereum_address(v)
+        self.agent = validate_ethereum_address(self.agent)
 
 
 # Update Perp Instrument Leverage Method
-class UpdatePerpInstrumentLeverageParams(BaseModel):
+@dataclass
+class UpdatePerpInstrumentLeverageParams:
     """Parameters for updating perp instrument leverage."""
-    instrument_id: int = Field(..., alias="instrumentId", description="Instrument ID")
-    leverage: int = Field(..., description="Leverage value")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    instrumentId: int
+    leverage: str
+    nonce: Optional[int] = None
 
 
 # Approve Broker Fee Method
-class ApproveBrokerFeeParams(BaseModel):
+@dataclass
+class ApproveBrokerFeeParams:
     """Parameters for approving broker fee."""
-    broker: str = Field(..., description="Broker address")
-    max_fee_rate: str = Field(..., alias="maxFeeRate", description="Maximum fee rate")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    @field_validator('broker', mode='before')
-    @classmethod
-    def validate_broker_address(cls, v: str) -> str:
+    broker: str
+    maxFeeRate: str
+    nonce: Optional[int] = None
+    
+    def __post_init__(self):
         """Validate and checksum the broker address."""
-        return validate_ethereum_address(v)
+        self.broker = validate_ethereum_address(self.broker)
 
 
 # Create Referral Code Method
-class CreateReferralCodeParams(BaseModel):
+@dataclass
+class CreateReferralCodeParams:
     """Parameters for creating a referral code."""
-    code: str = Field(..., description="Referral code")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    code: str
+    nonce: Optional[int] = None
 
 
 # Set Referrer Method
-class SetReferrerParams(BaseModel):
+@dataclass
+class SetReferrerParams:
     """Parameters for setting a referrer."""
-    code: str = Field(..., description="Referral code")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    code: str
+    nonce: Optional[int] = None
 
 
 # Claim Referral Rewards Method
-class ClaimReferralRewardsParams(BaseModel):
+@dataclass
+class ClaimReferralRewardsParams:
     """Parameters for claiming referral rewards."""
-    collateral_id: int = Field(..., alias="collateralId", description="Collateral ID")
-    spot: bool = Field(..., description="Whether to claim from spot account")
-    nonce: Optional[int] = Field(None, description="Transaction nonce")
-
-    model_config = ConfigDict(populate_by_name=True)
+    collateralId: int
+    spot: bool
+    nonce: Optional[int] = None
