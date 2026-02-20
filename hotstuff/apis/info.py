@@ -153,7 +153,10 @@ class InfoClient:
         """Get account history."""
         request = {"method": "accountHistory", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return AM.AccountHistoryResponse(**response)
+        # API returns a list directly
+        if isinstance(response, list):
+            return [AM.AccountHistory(**item) for item in response]
+        return []
     
     def order_history(
         self, params: AM.OrderHistoryParams, signal: Optional[Any] = None
@@ -169,9 +172,9 @@ class InfoClient:
             del response["data"]
         return AM.OrderHistoryResponse(**response)
     
-    def trade_history(
-        self, params: AM.TradeHistoryParams, signal: Optional[Any] = None
-    ) -> AM.TradeHistoryResponse:
+    def fills(
+        self, params: AM.FillsParams, signal: Optional[Any] = None
+    ) -> AM.FillsResponse:
         """Get trade history (fills)."""
         request = {"method": "fills", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
@@ -181,7 +184,7 @@ class InfoClient:
         elif isinstance(response, dict) and "data" in response and isinstance(response.get("data"), list):
             response = {**response, "entries": response["data"]}
             del response["data"]
-        return AM.TradeHistoryResponse(**response)
+        return AM.FillsResponse(**response)
     
     def funding_history(
         self, params: AM.FundingHistoryParams, signal: Optional[Any] = None
@@ -203,7 +206,18 @@ class InfoClient:
         """Get transfer history."""
         request = {"method": "transferHistory", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return AM.TransferHistoryResponse(**response)
+        # API returns a list directly; rename 'from' to 'from_address' (reserved keyword)
+        if isinstance(response, list):
+            return [AM.TransferHistory(
+                from_address=item.get("from", ""),
+                to=item.get("to", ""),
+                collateral_id=item.get("collateral_id", 0),
+                amount=item.get("amount", ""),
+                tx_hash=item.get("tx_hash", ""),
+                type=item.get("type", "deposit"),
+                timestamp=item.get("timestamp", ""),
+            ) for item in response]
+        return []
     
     def instrument_leverage(
         self, params: AM.InstrumentLeverageParams, signal: Optional[Any] = None
@@ -212,22 +226,6 @@ class InfoClient:
         request = {"method": "instrumentLeverage", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         return AM.InstrumentLeverageResponse(**response)
-    
-    def get_referral_info(
-        self, params: AM.ReferralInfoParams, signal: Optional[Any] = None
-    ) -> AM.ReferralInfoResponse:
-        """Get referral info."""
-        request = {"method": "referralInfo", "params": self._to_dict(params)}
-        response = self.transport.request("info", request, signal)
-        return AM.ReferralInfoResponse(**response)
-    
-    def sub_accounts_list(
-        self, params: AM.SubAccountsListParams, signal: Optional[Any] = None
-    ) -> AM.SubAccountsListResponse:
-        """Get sub-accounts list."""
-        request = {"method": "subAccountsList", "params": self._to_dict(params)}
-        response = self.transport.request("info", request, signal)
-        return AM.SubAccountsListResponse(**response)
     
     def agents(
         self, params: AM.AgentsParams, signal: Optional[Any] = None
@@ -238,14 +236,6 @@ class InfoClient:
         if isinstance(response, list):
             return [AM.Agent(**item) for item in response]
         return AM.AgentsResponse(**response)
-    
-    def user_balance(
-        self, params: AM.UserBalanceInfoParams, signal: Optional[Any] = None
-    ) -> AM.UserBalanceInfoResponse:
-        """Get user balance."""
-        request = {"method": "userBalance", "params": self._to_dict(params)}
-        response = self.transport.request("info", request, signal)
-        return AM.UserBalanceInfoResponse(**response)
     
     def account_info(
         self, params: AM.AccountInfoParams, signal: Optional[Any] = None

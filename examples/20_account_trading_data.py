@@ -1,145 +1,94 @@
-"""Example: Broker fee with agent trading flow.
-
-This example demonstrates the full flow of:
-1. Approving a broker fee from the main account
-2. Creating an agent
-3. Placing orders through the agent with broker configuration
-"""
-import time
-import os
+"""Example: Account trading data."""
+import example_utils
 from hotstuff import (
-    HttpTransport,
-    ExchangeClient,
-    HttpTransportOptions,
-)
-from eth_account import Account
-from hotstuff.methods.exchange.account import (
-    AddAgentParams,
-    RevokeAgentParams,
-    ApproveBrokerFeeParams,
-)
-from hotstuff.methods.exchange.trading import (
-    PlaceOrderParams,
-    UnitOrder,
-    BrokerConfig,
+  OpenOrdersParams,
+  PositionsParams,
+  AccountSummaryParams,
+  AccountInfoParams,
+  ReferralSummaryParams,
+  UserFeeInfoParams,
+  AccountHistoryParams,
+  OrderHistoryParams,
+  FillsParams,
+  FundingHistoryParams,
+  TransferHistoryParams,
+  InstrumentLeverageParams,
+  AgentsParams,
 )
 
+MAIN_ACCOUNT_ADDRESS = "0x42C183edba036906447372a7c81Eb89D0B9f2175"
 
 def main():
-    """Main example function demonstrating broker fee with agent trading."""
-    # Get main account private key from environment
-    main_private_key = os.getenv("PRIVATE_KEY")
-    if not main_private_key:
-        print("ERROR: PRIVATE_KEY environment variable must be set")
-        return
+    """Main example function."""
+    print("--------------------------------\nAccount trading data\n")
+    info, _ = example_utils.setup_clients(is_testnet=True, main_account=False)
     
-    # Create HTTP transport for testnet
-    transport = HttpTransport(
-        HttpTransportOptions(is_testnet=True)
-    )
-    
-    # Main account setup (the account that will approve broker fees and create agent)
-    main_account = Account.from_key(main_private_key)
-    print(f"Main account: {main_account.address}")
-    
-    # Create exchange client for main account
-    main_exchange = ExchangeClient(transport=transport, wallet=main_account)
-    
-    # Broker address that will receive fees (replace with actual broker address)
-    broker_address = "0x1234567890123456789012345678901234567890"
-    
-    try:
-        # Step 1: Approve broker fee from main account
-        print("\nStep 1: Approving broker fee...")
-        print("-" * 40)
-        result = main_exchange.approve_broker_fee(
-            ApproveBrokerFeeParams(
-                broker=broker_address,
-                max_fee_rate="0.001",  # 0.1% max fee rate
-            )
-        )
-        print(f"Broker fee approved! Result: {result}\n")
-        
-        # Step 2: Generate agent credentials and add agent
-        print("Step 2: Creating and adding agent...")
-        print("-" * 40)
-        
-        # Generate a new agent account
-        agent_account = Account.create()
-        agent_private_key = agent_account.key.hex()
-        
-        print(f"Agent address: {agent_account.address}")
-        
-        result = main_exchange.add_agent(
-            AddAgentParams(
-                agent_name="broker-trading-agent",
-                agent=agent_account.address,
-                for_account="",
-                agent_private_key=agent_private_key,
-                signer=main_account.address,
-                valid_until=int(time.time() * 1000) + 86400000 * 30,  # Valid for 30 days (in milliseconds)
-            )
-        )
-        print(f"Agent added! Result: {result}\n")
-        
-        # Step 3: Create exchange client for the agent
-        print("Step 3: Setting up agent exchange client...")
-        print("-" * 40)
-        agent_exchange = ExchangeClient(transport=transport, wallet=agent_account)
-        print("Agent exchange client created.\n")
-        
-        # Step 4: Place order from agent with broker config
-        print("Step 4: Placing order with broker fee...")
-        print("-" * 40)
-        result = agent_exchange.place_order(
-            PlaceOrderParams(
-                orders=[
-                    UnitOrder(
-                        instrument_id=1,
-                        side="b",  # buy
-                        position_side="BOTH",
-                        price="50000.00",
-                        size="0.1",
-                        tif="GTC",
-                        ro=False,
-                        po=False,
-                        cloid=f"broker-order-{int(time.time())}",
-                        trigger_px=None,
-                        is_market=False,
-                        tpsl="",
-                        grouping="",
-                    )
-                ],
-                broker_config=BrokerConfig(
-                    broker=broker_address,
-                    fee="0.0005",  # 0.05% fee (must be <= approved maxFeeRate)
-                ),
-                expires_after=int(time.time() * 1000) + 3600000,  # 1 hour (in milliseconds)
-            )
-        )
-        print(f"Order placed with broker fee! Result: {result}\n")
-        
-        # Optional: Revoke agent when done
-        print("Optional: Revoking agent...")
-        print("-" * 40)
-        # Uncomment to revoke the agent:
-        # result = main_exchange.revoke_agent(
-        #     RevokeAgentParams(
-        #         agent=agent_account.address,
-        #         for_account="",  # optional: sub-account address
-        #     )
-        # )
-        # print(f"Agent revoked! Result: {result}\n")
-        print("Skipped (uncomment to enable)\n")
-        
-    except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
-    
-    finally:
-        transport.close()
+    # # Get open orders
+    print("Fetching open orders...")
+    open_orders = info.open_orders(OpenOrdersParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Open orders: {open_orders}\n")
+
+    # # Get positions
+    print("Fetching positions...")
+    positions = info.positions(PositionsParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Positions: {positions}\n")
+
+    # Get account summary
+    print("Fetching account summary...")
+    account_summary = info.account_summary(AccountSummaryParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Account summary: {account_summary}\n")
+
+    # Get account info
+    print("Fetching account info...")
+    account_info = info.account_info(AccountInfoParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Account info: {account_info}\n")
+
+    # Get referral summary
+    print("Fetching referral summary...")
+    referral_summary = info.referral_summary(ReferralSummaryParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Referral summary: {referral_summary}\n")
+
+    # Get user fee info
+    print("Fetching user fee info...")
+    user_fee_info = info.user_fee_info(UserFeeInfoParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"User fee info: {user_fee_info}\n")
+
+    # Get account history
+    print("Fetching account history...")
+    account_history = info.account_history(AccountHistoryParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Account history: {account_history}\n")
+
+    # Get order history
+    print("Fetching order history...")
+    order_history = info.order_history(OrderHistoryParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Order history: {order_history}\n")
+
+    # Get fills
+    print("Fetching fills...")
+    fills = info.fills(FillsParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Fills: {fills}\n")
 
 
+    # Get funding history
+    print("Fetching funding history...")
+    funding_history = info.funding_history(FundingHistoryParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Funding history: {funding_history}\n")
+
+    # # Get transfer history
+    print("Fetching transfer history...")
+    transfer_history = info.transfer_history(TransferHistoryParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Transfer history: {transfer_history}\n")
+
+    # Get instrument leverage
+    print("Fetching instrument leverage...")
+    instrument_leverage = info.instrument_leverage(InstrumentLeverageParams(user=MAIN_ACCOUNT_ADDRESS, symbol="BTC-PERP"))
+    print(f"Instrument leverage: {instrument_leverage}\n")
+
+    # Get agents
+    print("Fetching agents...")
+    agents = info.agents(AgentsParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Agents: {agents}\n")
+
+  
 if __name__ == "__main__":
     main()

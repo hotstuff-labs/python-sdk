@@ -145,13 +145,51 @@ class ReferralSummaryParams:
 
 
 @dataclass
+class ReferralVolumeBreakdown:
+    """Volume breakdown by maker/taker."""
+    maker_volume: float
+    taker_volume: float
+
+
+@dataclass
+class ReferredUser:
+    """Referred user details."""
+    code: str
+    joined_at: int
+    referred_volume: float
+    perp_volume: ReferralVolumeBreakdown
+    spot_volume: ReferralVolumeBreakdown
+    stable_spot_volume: ReferralVolumeBreakdown
+    referred_perp_rewards: float
+    referred_spot_rewards: float
+
+
+@dataclass
+class ReferralTier:
+    """Referral tier information."""
+    total_referred_volume: float
+    fee_discount_rate: float
+    referrer_commission: float
+
+
+@dataclass
 class ReferralSummaryResponse:
     """Referral summary response."""
-    referral_code: Optional[str] = None
-    total_referrals: Optional[int] = None
-    total_volume: Optional[str] = None
-    total_rewards: Optional[str] = None
-    tier: Optional[str] = None
+    address: str
+    referrer: str
+    referrer_code: str
+    refer_timestamp: int
+    is_affiliate: bool
+    codes: List[str]
+    referred_users: Dict[str, ReferredUser]
+    to_claim_perp_rewards: float
+    to_claim_spot_rewards: float
+    claimed_perp_rewards: float
+    claimed_spot_rewards: float
+    total_referred_volume: float
+    rolling_referred_volume: float
+    referral_tier: ReferralTier
+    updated_at: int
 
 
 # User Fee Info Method
@@ -200,9 +238,23 @@ class AccountHistoryParams:
 
 
 @dataclass
-class AccountHistoryResponse:
-    """Account history response."""
-    pass
+class AccountHistory:
+    """Account history entry."""
+    address: str
+    total_pnl: str
+    total_volume: float
+    account_value: str
+    created_at: str
+    # Additional fields returned by API
+    perp_volume: Optional[float] = None
+    spot_volume: Optional[float] = None
+    stable_spot_volume: Optional[float] = None
+    perp_pnl: Optional[str] = None
+    spot_pnl: Optional[str] = None
+
+
+# Note: account history endpoint returns List[AccountHistory] directly
+AccountHistoryResponse = List[AccountHistory]
 
 
 # Order History Method
@@ -252,7 +304,7 @@ class OrderHistoryResponse:
 
 # Trade History Method (Fills)
 @dataclass
-class TradeHistoryParams:
+class FillsParams:
     """Parameters for trade history (fills) query."""
     user: str
     instrument_id: Optional[str] = None
@@ -264,7 +316,7 @@ class TradeHistoryParams:
 
 
 @dataclass
-class TradeHistoryEntry:
+class Fill:
     """Single fill / trade history entry."""
     instrument_id: int
     instrument: str
@@ -290,11 +342,10 @@ class TradeHistoryEntry:
     block_timestamp: Optional[str] = None
     # liquidation_info optional object when fill is from liquidation
 
-
 @dataclass
-class TradeHistoryResponse:
-    """Trade history (fills) response. API returns data in top-level 'data' key."""
-    entries: List[TradeHistoryEntry] = field(default_factory=list)
+class FillsResponse:
+    """Fills response. API returns data in top-level 'data' key."""
+    entries: List[Fill] = field(default_factory=list)
     page: Optional[int] = None
     limit: Optional[int] = None
     total_count: Optional[int] = None
@@ -349,11 +400,19 @@ class TransferHistoryParams:
         """Validate and checksum the user address."""
         self.user = validate_ethereum_address(self.user)
 
-
 @dataclass
-class TransferHistoryResponse:
-    """Transfer history response."""
-    pass
+class TransferHistory:
+    """Transfer history entry."""
+    from_address: str  # 'from' in API response
+    to: str
+    collateral_id: int
+    amount: str
+    tx_hash: str
+    type: Literal["deposit", "spot_withdraw", "derivative_withdraw", "spot_balance_transfer", "derivative_balance_transfer", "internal_balance_transfer", "vault_deposit", "vault_withdraw"]
+    timestamp: str
+
+# Note: transfer history endpoint returns List[TransferHistory] directly
+TransferHistoryResponse = List[TransferHistory]
 
 
 # Instrument Leverage Method
@@ -366,7 +425,6 @@ class InstrumentLeverageParams:
     def __post_init__(self):
         """Validate and checksum the user address."""
         self.user = validate_ethereum_address(self.user)
-
 
 @dataclass
 class InstrumentLeverageResponse:
@@ -389,29 +447,10 @@ class ReferralInfoParams:
         """Validate and checksum the user address."""
         self.user = validate_ethereum_address(self.user)
 
-
 @dataclass
 class ReferralInfoResponse:
     """Referral info response."""
     pass
-
-
-# Sub Accounts List Method
-@dataclass
-class SubAccountsListParams:
-    """Parameters for sub accounts list query."""
-    user: str
-    
-    def __post_init__(self):
-        """Validate and checksum the user address."""
-        self.user = validate_ethereum_address(self.user)
-
-
-@dataclass
-class SubAccountsListResponse:
-    """Sub accounts list response."""
-    pass
-
 
 # Agents Method
 @dataclass
@@ -422,7 +461,6 @@ class AgentsParams:
     def __post_init__(self):
         """Validate and checksum the user address."""
         self.user = validate_ethereum_address(self.user)
-
 
 @dataclass
 class Agent:
@@ -439,48 +477,52 @@ class Agent:
         if self.agent_address:
             self.agent_address = validate_ethereum_address(self.agent_address)
 
-
 @dataclass
 class AgentsResponse:
     """Agents response."""
     pass
-
-
-# User Balance Info Method
-@dataclass
-class UserBalanceInfoParams:
-    """Parameters for user balance info query."""
-    user: str
-    type: Literal["all", "spot", "derivative"]
-    
-    def __post_init__(self):
-        """Validate and checksum the user address."""
-        self.user = validate_ethereum_address(self.user)
-
-
-@dataclass
-class UserBalanceInfoResponse:
-    """User balance info response.
-    Keys are collateral currency IDs (e.g. "1"), values are balance strings.
-    """
-    spot: Dict[str, str] = field(default_factory=dict)
-    derivative: Dict[str, str] = field(default_factory=dict)
-
 
 # Account Info Method
 @dataclass
 class AccountInfoParams:
     """Parameters for account info query."""
     user: str
-    collateral_id: Optional[int] = None
-    include_history: Optional[bool] = None
+    collateralId: Optional[int] = None
+    includeHistory: Optional[bool] = None
     
     def __post_init__(self):
         """Validate and checksum the user address."""
         self.user = validate_ethereum_address(self.user)
 
+@dataclass
+class AccountInfoAccount:
+    """Account details within account info response."""
+    address: str
+    role: int
+    margin_mode: Literal["cross", "isolated"]
+    multi_asset_mode: bool
+    hedge_mode: bool
+    referrer: str
+    referral_codes: List[str]
+    referral_timestamp: int
+    created_at_block_timestamp: int
+
+@dataclass
+class AccountInfoReward:
+    """Reward entry within account info response."""
+    account: str
+    collateral_id: int
+    source: str
+    is_spot: bool
+    amount: str
+    claim_amount: str
+    created_at: int
 
 @dataclass
 class AccountInfoResponse:
     """Account info response."""
-    pass
+    account: AccountInfoAccount
+    rewards: List[AccountInfoReward] = field(default_factory=list)
+    history: List[AccountInfoReward] = field(default_factory=list)
+
+
