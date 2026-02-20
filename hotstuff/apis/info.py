@@ -7,24 +7,29 @@ from hotstuff.methods.info import account as AM
 from hotstuff.methods.info import vault as VM
 from hotstuff.methods.info import explorer as EM
 
+from hotstuff.transports import HttpTransport, WebSocketTransport
+from hotstuff.types import HttpTransportOptions, WebSocketTransportOptions
+
 
 class InfoClient:
     """Client for querying market data and account information."""
     
-    def __init__(self, transport):
+    def __init__(self, websocket: bool = False, is_testnet: bool = False):
         """
         Initialize InfoClient.
         
         Args:
             transport: The transport layer to use
         """
-        self.transport = transport
+        self.websocket = websocket
+        if websocket:
+            self.transport = WebSocketTransport(WebSocketTransportOptions(is_testnet=is_testnet))
+        else:
+            self.transport = HttpTransport(HttpTransportOptions(is_testnet=is_testnet))
     
     def _to_dict(self, obj) -> dict:
         """Convert dataclass to dict."""
         return asdict(obj)
-    
-    # Global Info Endpoints
     
     def oracle(
         self, params: GM.OracleParams, signal: Optional[Any] = None

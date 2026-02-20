@@ -11,6 +11,8 @@ from hotstuff.methods.exchange import (
     vault as VM,
 )
 from hotstuff.methods.exchange.op_codes import EXCHANGE_OP_CODES
+from hotstuff.transports import HttpTransport, WebSocketTransport
+from hotstuff.types import HttpTransportOptions, WebSocketTransportOptions
 
 
 class ExchangeClient:
@@ -18,9 +20,10 @@ class ExchangeClient:
     
     def __init__(
         self,
-        transport,
         wallet: Account,
-        nonce: Optional[Callable[[], int]] = None
+        nonce: Optional[Callable[[], int]] = None,
+        websocket: bool = False,
+        is_testnet: bool = False
     ):
         """
         Initialize ExchangeClient.
@@ -30,9 +33,17 @@ class ExchangeClient:
             wallet: The wallet/account for signing
             nonce: Optional nonce generator function
         """
-        self.transport = transport
+        self.websocket = websocket
+        if websocket:
+            self.transport = WebSocketTransport(WebSocketTransportOptions(is_testnet=is_testnet))
+        else:
+            self.transport = HttpTransport(HttpTransportOptions(is_testnet=is_testnet))
         self.wallet = wallet
         self.nonce = nonce or NonceManager().get_nonce
+    
+    def _to_dict(self, obj) -> dict:
+        """Convert dataclass to dict."""
+        return asdict(obj)
     
     # Account Actions
     
