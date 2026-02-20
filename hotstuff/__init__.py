@@ -3,7 +3,7 @@
 A Python SDK for interacting with Hotstuff L1.
 """
 
-__version__ = "0.0.1-beta.10"
+__version__ = "0.0.1-beta.11"
 
 # Transports
 from hotstuff.transports import HttpTransport, WebSocketTransport
