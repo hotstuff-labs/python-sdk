@@ -290,6 +290,27 @@ class ExchangeClient:
             {"action": "cancelByCloid", "params": params_dict},
             signal
         )
+
+    def cancel_by_instrument(
+        self,
+        params: TM.CancelByInstrumentParams,
+        signal: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Cancel order by instrument.
+        
+        Args:
+            params: Cancel by instrument parameters
+            signal: Optional abort signal
+            
+        Returns:
+            Response from the server
+        """
+        params_dict = self._to_api_dict(params, exclude={"nonce"})
+        return self._execute_action(
+            {"action": "cancelByInstrument", "params": params_dict},
+            signal
+        )
     
     def cancel_all(
         self,

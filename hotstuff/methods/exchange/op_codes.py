@@ -14,6 +14,7 @@ EXCHANGE_OP_CODES = {
     "cancelByOid": 1302,
     "cancelAll": 1311,
     "cancelByCloid": 1312,
+    "cancelByInstrument": 1313,
 
     # Collateral Actions
     "accountSpotWithdrawRequest": 1002,

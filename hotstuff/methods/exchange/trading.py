@@ -133,6 +133,13 @@ class CancelByCloidParams:
     expiresAfter: int
     nonce: Optional[int] = None
 
+#Cancel By Instrument Method
+@dataclass
+class CancelByInstrumentParams:
+    """Parameters for cancelling by instrument."""
+    instrumentId: int
+    expiresAfter: int
+    nonce: Optional[int] = None
 
 # Cancel All Method
 @dataclass

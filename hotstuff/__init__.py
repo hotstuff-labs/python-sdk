@@ -3,7 +3,7 @@
 A Python SDK for interacting with Hotstuff L1.
 """
 
-__version__ = "0.0.1-beta.12"
+__version__ = "0.0.1-beta.13"
 
 # Transports
 from hotstuff.transports import HttpTransport, WebSocketTransport
@@ -45,6 +45,7 @@ from hotstuff.methods.exchange.trading import (
     CancelByOidParams,
     CancelByCloidParams,
     CancelAllParams,
+    CancelByInstrumentParams,
 )
 
 from hotstuff.methods.exchange.collateral import (
@@ -191,6 +192,7 @@ __all__ = [
     "CancelByOidParams",
     "CancelByCloidParams",
     "CancelAllParams",
+    "CancelByInstrumentParams",
     "UnitCancelByOrderId",
     "UnitCancelByClOrderId",
     "AccountSpotWithdrawRequestParams",
