@@ -14,14 +14,15 @@ from hotstuff import (
   TransferHistoryParams,
   InstrumentLeverageParams,
   AgentsParams,
+  BrokersCheckParams,
 )
 
-MAIN_ACCOUNT_ADDRESS = "0x42C183edba036906447372a7c81Eb89D0B9f2175"
+MAIN_ACCOUNT_ADDRESS = "0x16494137B22D9AED86B8D06B01fBFD7Be512e4D6"
 
 def main():
     """Main example function."""
     print("--------------------------------\nAccount trading data\n")
-    info, _ = example_utils.setup_clients(is_testnet=True, main_account=False)
+    info, _ = example_utils.setup_clients(is_testnet=False, main_account=True)
     
     # # Get open orders
     print("Fetching open orders...")
@@ -88,7 +89,11 @@ def main():
     print("Fetching agents...")
     agents = info.agents(AgentsParams(user=MAIN_ACCOUNT_ADDRESS))
     print(f"Agents: {agents}\n")
-
+    
+    # Get brokers check
+    print("Fetching brokers check...")
+    brokers_check = info.brokers_check(BrokersCheckParams(user=MAIN_ACCOUNT_ADDRESS))
+    print(f"Brokers check: {brokers_check}\n")
   
 if __name__ == "__main__":
     main()

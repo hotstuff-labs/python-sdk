@@ -3,7 +3,7 @@
 A Python SDK for interacting with Hotstuff L1.
 """
 
-__version__ = "0.0.1-beta.13"
+__version__ = "0.0.1-beta.14"
 
 # Transports
 from hotstuff.transports import HttpTransport, WebSocketTransport
@@ -123,6 +123,9 @@ from hotstuff.methods.info.account import (
     Agent,
     AccountInfoParams,
     AccountInfoResponse,
+    BrokersCheckParams,
+    BrokersCheckData,
+    BrokersCheckResponse,
 )
 
 from hotstuff.methods.info.vault import (
@@ -249,6 +252,9 @@ __all__ = [
     "Agent",
     "AccountInfoParams",
     "AccountInfoResponse",
+    "BrokersCheckParams",
+    "BrokersCheckData",
+    "BrokersCheckResponse",
     # Vault Data Types
     "VaultsParams",
     "VaultsResponse",

@@ -250,6 +250,14 @@ class InfoClient:
         response = self.transport.request("info", request, signal)
         return AM.AccountInfoResponse(**response)
     
+    def brokers_check(
+        self, params: AM.BrokersCheckParams, signal: Optional[Any] = None
+    ) -> AM.BrokersCheckResponse:
+        """Get brokers check."""
+        request = {"method": "brokersCheck", "params": self._to_dict(params)}
+        response = self.transport.request("info", request, signal)
+        return AM.BrokersCheckResponse(**response)
+        
     # Vault Info Endpoints
     
     def vaults(

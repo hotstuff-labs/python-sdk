@@ -173,6 +173,12 @@ class ReferralTier:
 
 
 @dataclass
+class ReferralBypassSlots:
+    """Referral bypass slots information."""
+    users_allowed: int
+
+
+@dataclass
 class ReferralSummaryResponse:
     """Referral summary response."""
     address: str
@@ -190,6 +196,7 @@ class ReferralSummaryResponse:
     rolling_referred_volume: float
     referral_tier: ReferralTier
     updated_at: int
+    referral_bypass_slots: Optional[ReferralBypassSlots] = None
 
 
 # User Fee Info Method
@@ -462,6 +469,7 @@ class AgentsParams:
         """Validate and checksum the user address."""
         self.user = validate_ethereum_address(self.user)
 
+
 @dataclass
 class Agent:
     """Agent information."""
@@ -482,6 +490,39 @@ class AgentsResponse:
     """Agents response."""
     pass
 
+@dataclass
+class BrokersCheckParams:
+    """Parameters for brokers check query."""
+    user: Optional[str] = None
+    broker: Optional[str] = None
+    limit: Optional[int] = None
+    page: Optional[int] = None
+    def __post_init__(self):
+        """Validate and checksum the addresses if provided."""
+        if self.user:
+            self.user = validate_ethereum_address(self.user)
+        if self.broker:
+            self.broker = validate_ethereum_address(self.broker)
+
+@dataclass
+class BrokersCheckData:
+    """Brokers check data."""
+    account: str
+    broker: str
+    max_fee_rate: str
+    updated_at: int
+@dataclass
+class BrokersCheckResponse:
+    """Brokers check response."""
+    data: List[BrokersCheckData] = field(default_factory=list)
+    page: Optional[int] = None
+    limit: Optional[int] = None
+    total_count: Optional[int] = None
+    total_pages: Optional[int] = None
+    has_next: Optional[bool] = None
+    has_prev: Optional[bool] = None
+
+
 # Account Info Method
 @dataclass
 class AccountInfoParams:
@@ -495,8 +536,8 @@ class AccountInfoParams:
         self.user = validate_ethereum_address(self.user)
 
 @dataclass
-class AccountInfoAccount:
-    """Account details within account info response."""
+class AccountInfoResponse:
+    """Account info response."""
     address: str
     role: int
     margin_mode: Literal["cross", "isolated"]
@@ -506,23 +547,5 @@ class AccountInfoAccount:
     referral_codes: List[str]
     referral_timestamp: int
     created_at_block_timestamp: int
-
-@dataclass
-class AccountInfoReward:
-    """Reward entry within account info response."""
-    account: str
-    collateral_id: int
-    source: str
-    is_spot: bool
-    amount: str
-    claim_amount: str
-    created_at: int
-
-@dataclass
-class AccountInfoResponse:
-    """Account info response."""
-    account: AccountInfoAccount
-    rewards: List[AccountInfoReward] = field(default_factory=list)
-    history: List[AccountInfoReward] = field(default_factory=list)
 
 
