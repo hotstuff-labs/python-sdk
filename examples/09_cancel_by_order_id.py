@@ -7,7 +7,7 @@ import time
 
 def main():
     """Main example function."""
-    print("--------------------------------\nPlace orders\n")
+    print("--------------------------------\nCancel by order id\n")
     _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
         
     # Cancel order by order id

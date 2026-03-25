@@ -8,7 +8,7 @@ import time
 def main():
     """Main example function."""
     print("--------------------------------\nCancel by instrument\n")
-    _, exchange = example_utils.setup_clients(is_testnet=False, main_account=False)
+    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
         
     # Cancel order by instrument
     cancel_by_instrument_params = CancelByInstrumentParams(

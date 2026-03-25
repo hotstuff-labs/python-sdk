@@ -11,7 +11,7 @@ def main():
     
     result = exchange.revoke_agent(
             RevokeAgentParams(
-                agent="0x97C823F1915FC0b04ab15C32cBEec8ab9E2994fd",
+                agent="0x0506BADFB56364cb90233350A8cAa3FF8ea0f470",
                 forAccount="",
             )
         )
