@@ -17,7 +17,7 @@ from hotstuff import (
   BrokersCheckParams,
 )
 
-MAIN_ACCOUNT_ADDRESS = "0x42C183edba036906447372a7c81Eb89D0B9f2175"
+MAIN_ACCOUNT_ADDRESS = "0xdE66c594AF8e4AD2C62DcFadCb6714F8b176A4ef"
 
 def main():
     """Main example function."""
