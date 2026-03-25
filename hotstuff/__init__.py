@@ -154,6 +154,9 @@ from hotstuff.methods.subscription.channels import (
     TickerSubscriptionParams,
     TradeSubscriptionParams,
     OrderbookSubscriptionParams,
+    FundingPaymentsSubscriptionParams,
+    AgentsSubscriptionParams,
+    OrdersSubscriptionParams,
 )
 
 __all__ = [
@@ -275,6 +278,8 @@ __all__ = [
     "TickerSubscriptionParams",
     "TradeSubscriptionParams",
     "OrderbookSubscriptionParams",
+    "FundingPaymentsSubscriptionParams",
+    "AgentsSubscriptionParams",
     # Utils
     "NonceManager",
     "sign_action",

@@ -23,7 +23,7 @@ class OracleResponse:
 @dataclass
 class SupportedCollateralParams:
     """Parameters for supported collateral query."""
-    pass
+    symbol: str
 
 
 @dataclass
@@ -66,6 +66,7 @@ class SupportedCollateral:
     coll_risk: Optional[CollRisk] = None
     withdrawal_fee: Optional[int] = None
     added_at_block: Optional[int] = None
+    transfer_notional_fee: Optional[int] = None
 
 
 # Instruments Method
@@ -208,7 +209,7 @@ class Trade:
 @dataclass
 class MidsParams:
     """Parameters for mids query."""
-    pass
+    symbol: str
 
 
 @dataclass
@@ -236,14 +237,14 @@ class BBO:
 
 
 # Chart Method
-SupportedChartResolutions = Literal["1", "5", "15", "60", "240", "1D", "1W"]
+SupportedChartResolutions = Literal["1", "5", "15", "30", "60", "240", "1D", "1W"]
 SupportedChartTypes = Literal["mark", "ltp", "index"]
 
 
 @dataclass
 class ChartParams:
     """Parameters for chart data query."""
-    symbol: str
+    instrument_id: int
     resolution: SupportedChartResolutions
     from_: int
     to: int

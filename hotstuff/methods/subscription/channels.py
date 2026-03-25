@@ -6,7 +6,7 @@ from hotstuff.utils.address import validate_ethereum_address
 
 
 # Chart types
-SupportedChartResolutions = Literal["1", "5", "15", "60", "240", "1D", "1W"]
+SupportedChartResolutions = Literal["1", "5", "15", "30", "60", "240", "1D", "1W"]
 SupportedChartTypes = Literal["mark", "ltp", "index"]
 
 
@@ -32,41 +32,26 @@ class BBOSubscriptionParams:
 @dataclass
 class OrderbookSubscriptionParams:
     """Parameters for orderbook subscription."""
-    instrument_id: str
+    symbol: str
 
 
 @dataclass
 class TradeSubscriptionParams:
     """Parameters for trade subscription."""
-    instrument_id: str
+    symbol: str
 
 
 @dataclass
 class ChartSubscriptionParams:
     """Parameters for chart subscription."""
-    symbol: str
+    instrument_id: str
     chart_type: SupportedChartTypes
     resolution: SupportedChartResolutions
 
 
 @dataclass
-class AccountOrderUpdatesParams:
-    """Parameters for account order updates subscription."""
-    user: str
-    
-    def __post_init__(self):
-        """Validate and checksum the user address."""
-        self.user = validate_ethereum_address(self.user)
-    
-    @property
-    def address(self) -> str:
-        """Alias for user field (deprecated)."""
-        return self.user
-
-
-@dataclass
-class AccountBalanceUpdatesParams:
-    """Parameters for account balance updates subscription."""
+class OrdersSubscriptionParams:
+    """Parameters for orders updates subscription."""
     user: str
     
     def __post_init__(self):
@@ -107,6 +92,26 @@ class FillsSubscriptionParams:
     def address(self) -> str:
         """Alias for user field (deprecated)."""
         return self.user
+
+
+@dataclass
+class FundingPaymentsSubscriptionParams:
+    """Parameters for funding payments subscription."""
+    user: str
+
+    def __post_init__(self):
+        """Validate and checksum the user address."""
+        self.user = validate_ethereum_address(self.user)
+
+
+@dataclass
+class AgentsSubscriptionParams:
+    """Parameters for agent updates subscription."""
+    user: str
+
+    def __post_init__(self):
+        """Validate and checksum the user address."""
+        self.user = validate_ethereum_address(self.user)
 
 
 @dataclass

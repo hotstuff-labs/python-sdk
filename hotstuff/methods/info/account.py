@@ -35,6 +35,7 @@ class OpenOrder:
     post_only: bool
     reduce_only: bool
     timestamp: str
+    position_side: Optional[Literal["LONG", "SHORT", "BOTH"]] = None
     tpsl: Optional[str] = None  # Can be "tp", "sl", or ""
     trigger_px: Optional[str] = None
     trigger_price: Optional[str] = None  # Alternative field name
@@ -73,16 +74,19 @@ class Position:
     user: str
     instrument_id: int
     instrument: str
-    side: Literal["LONG", "SHORT"]
     size: str
     entry_price: str
     margin: str
-    unrealized_pnl: str
+    position_side: Optional[Literal["LONG", "SHORT", "BOTH"]] = None
+    side: Optional[Literal["LONG", "SHORT"]] = None
+    position_value: Optional[str] = None
+    margin_mode: Optional[Literal["cross", "isolated"]] = None
+    leverage: Optional[str] = None
+    unrealized_pnl: Optional[str] = None
     mark_price: Optional[str] = None
     realized_pnl: Optional[str] = None
     liquidation_price: Optional[str] = None
-    leverage: Optional[str] = None
-    margin_type: Optional[str] = None
+    margin_type: Optional[Literal["cross", "isolated"]] = None
     updated_at: Optional[int] = None
 
 
@@ -269,7 +273,7 @@ AccountHistoryResponse = List[AccountHistory]
 class OrderHistoryParams:
     """Parameters for order history query."""
     user: str
-    instrument_id: Optional[str] = None
+    page: Optional[int] = None
     limit: Optional[int] = None
     
     def __post_init__(self):
@@ -314,7 +318,7 @@ class OrderHistoryResponse:
 class FillsParams:
     """Parameters for trade history (fills) query."""
     user: str
-    instrument_id: Optional[str] = None
+    page: Optional[int] = None
     limit: Optional[int] = None
     
     def __post_init__(self):
@@ -402,6 +406,7 @@ class FundingHistoryResponse:
 class TransferHistoryParams:
     """Parameters for transfer history query."""
     user: str
+    page: Optional[int] = None
     
     def __post_init__(self):
         """Validate and checksum the user address."""

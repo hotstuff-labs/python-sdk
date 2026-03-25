@@ -27,7 +27,7 @@ def main():
 
     # Get supported collateral currencies
     print("Fetching supported collateral currencies...")
-    supported_collateral = info.supported_collateral(SupportedCollateralParams())
+    supported_collateral = info.supported_collateral(SupportedCollateralParams(symbol='all'))
     print(f"Supported collateral currencies: {supported_collateral}\n")
         
     # Get all instruments
@@ -52,7 +52,7 @@ def main():
 
     # Get mid prices for all instruments
     print("Fetching mid prices for all instruments...")
-    mids = info.mids(MidsParams())
+    mids = info.mids(MidsParams(symbol='all'))
     print(f"Mid prices: {mids}\n")
 
     # Get best bid/offer for BTC-PERP
@@ -62,7 +62,7 @@ def main():
 
     # Get chart data for BTC-PERP
     print("Fetching chart data for BTC-PERP...")
-    chart = info.chart(ChartParams(symbol="1", chart_type="mark", resolution="5", from_=int(time.time()) - 1000, to=int(time.time())))
+    chart = info.chart(ChartParams(instrument_id=1, chart_type="mark", resolution="5", from_=int(time.time()) - 1000, to=int(time.time())))
     print(f"BTC-PERP Chart data: {chart}\n")
 
 if __name__ == "__main__":

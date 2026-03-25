@@ -21,12 +21,12 @@ def main():
 
     # Get sub vaults
     print("Fetching sub vaults...")
-    sub_vaults = info.sub_vaults(SubVaultsParams(vaultAddress=VAULT_ADDRESS))
+    sub_vaults = info.sub_vaults(SubVaultsParams(vault_address=VAULT_ADDRESS))
     print(f"Sub vaults: {sub_vaults}\n")
 
     # Get vault balances
     print("Fetching vault balances...")
-    vault_balances = info.vault_balances(VaultBalancesParams(vaultAddress=VAULT_ADDRESS, user=MAIN_ACCOUNT_ADDRESS))
+    vault_balances = info.vault_balances(VaultBalancesParams(vault_address=VAULT_ADDRESS, user=MAIN_ACCOUNT_ADDRESS))
     print(f"Vault balances: {vault_balances}\n")
 
 if __name__ == "__main__":

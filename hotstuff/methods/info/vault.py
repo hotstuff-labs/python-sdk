@@ -42,11 +42,17 @@ class VaultsResponse:
 @dataclass
 class SubVaultsParams:
     """Parameters for sub vaults query."""
-    vaultAddress: str
+    vault_address: Optional[str] = None
+    vaultAddress: Optional[str] = None
     
     def __post_init__(self):
-        """Validate and checksum the vault address."""
-        self.vaultAddress = validate_ethereum_address(self.vaultAddress)
+        """Validate and checksum the vault address (supports legacy vaultAddress)."""
+        vault_address = self.vault_address or self.vaultAddress
+        if not vault_address:
+            raise ValueError("vault_address is required")
+        checksummed = validate_ethereum_address(vault_address)
+        self.vault_address = checksummed
+        self.vaultAddress = checksummed
 
 
 @dataclass
@@ -65,12 +71,18 @@ SubVaultsResponse = List[SubVault]
 @dataclass
 class VaultBalancesParams:
     """Parameters for vault balances query."""
-    vaultAddress: str
+    vault_address: Optional[str] = None
+    vaultAddress: Optional[str] = None
     user: Optional[str] = None
     
     def __post_init__(self):
-        """Validate and checksum Ethereum addresses."""
-        self.vaultAddress = validate_ethereum_address(self.vaultAddress)
+        """Validate and checksum Ethereum addresses (supports legacy vaultAddress)."""
+        vault_address = self.vault_address or self.vaultAddress
+        if not vault_address:
+            raise ValueError("vault_address is required")
+        checksummed = validate_ethereum_address(vault_address)
+        self.vault_address = checksummed
+        self.vaultAddress = checksummed
         if self.user:
             self.user = validate_ethereum_address(self.user)
 

@@ -43,7 +43,7 @@ class InfoClient:
         self, params: GM.SupportedCollateralParams, signal: Optional[Any] = None
     ) -> List[GM.SupportedCollateral]:
         """Get supported collateral."""
-        request = {"method": "supportedCollateral", "params": self._to_dict(params)}
+        request = {"method": "supported_collateral", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         return [GM.SupportedCollateral(**item) for item in response]
     
@@ -113,7 +113,7 @@ class InfoClient:
         self, params: AM.OpenOrdersParams, signal: Optional[Any] = None
     ) -> AM.OpenOrdersResponse:
         """Get open orders."""
-        request = {"method": "openOrders", "params": self._to_dict(params)}
+        request = {"method": "open_orders", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         if isinstance(response, dict) and "data" in response:
             response = {"orders": response["data"]}
@@ -132,7 +132,7 @@ class InfoClient:
         self, params: AM.AccountSummaryParams, signal: Optional[Any] = None
     ) -> AM.AccountSummaryResponse:
         """Get account summary."""
-        request = {"method": "accountSummary", "params": self._to_dict(params)}
+        request = {"method": "account_summary", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         return AM.AccountSummaryResponse(**response)
     
@@ -140,7 +140,7 @@ class InfoClient:
         self, params: AM.ReferralSummaryParams, signal: Optional[Any] = None
     ) -> AM.ReferralSummaryResponse:
         """Get referral summary."""
-        request = {"method": "referralSummary", "params": self._to_dict(params)}
+        request = {"method": "referral_summary", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         return AM.ReferralSummaryResponse(**response)
     
@@ -148,7 +148,7 @@ class InfoClient:
         self, params: AM.UserFeeInfoParams, signal: Optional[Any] = None
     ) -> AM.UserFeeInfoResponse:
         """Get user fee information."""
-        request = {"method": "userFees", "params": self._to_dict(params)}
+        request = {"method": "user_fees", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         return AM.UserFeeInfoResponse(**response)
     
@@ -156,7 +156,7 @@ class InfoClient:
         self, params: AM.AccountHistoryParams, signal: Optional[Any] = None
     ) -> AM.AccountHistoryResponse:
         """Get account history."""
-        request = {"method": "accountHistory", "params": self._to_dict(params)}
+        request = {"method": "account_history", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         # API returns a list directly
         if isinstance(response, list):
@@ -167,7 +167,7 @@ class InfoClient:
         self, params: AM.OrderHistoryParams, signal: Optional[Any] = None
     ) -> AM.OrderHistoryResponse:
         """Get order history."""
-        request = {"method": "orderHistory", "params": self._to_dict(params)}
+        request = {"method": "order_history", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         # API returns {"data": [...], "page", "limit", "total_count", ...}; map data -> orders
         if isinstance(response, list):
@@ -195,7 +195,7 @@ class InfoClient:
         self, params: AM.FundingHistoryParams, signal: Optional[Any] = None
     ) -> AM.FundingHistoryResponse:
         """Get funding history."""
-        request = {"method": "fundingHistory", "params": self._to_dict(params)}
+        request = {"method": "funding_history", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         # API returns {"data": [...], "page", "limit", "total_count", ...}; map data -> entries
         if isinstance(response, list):
@@ -209,7 +209,7 @@ class InfoClient:
         self, params: AM.TransferHistoryParams, signal: Optional[Any] = None
     ) -> AM.TransferHistoryResponse:
         """Get transfer history."""
-        request = {"method": "transferHistory", "params": self._to_dict(params)}
+        request = {"method": "transfer_history", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         # API returns a list directly; rename 'from' to 'from_address' (reserved keyword)
         if isinstance(response, list):
@@ -228,15 +228,15 @@ class InfoClient:
         self, params: AM.InstrumentLeverageParams, signal: Optional[Any] = None
     ) -> AM.InstrumentLeverageResponse:
         """Get instrument leverage settings."""
-        request = {"method": "instrumentLeverage", "params": self._to_dict(params)}
+        request = {"method": "instrument_leverage", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         return AM.InstrumentLeverageResponse(**response)
     
-    def agents(
+    def all_agents(
         self, params: AM.AgentsParams, signal: Optional[Any] = None
     ) -> AM.AgentsResponse:
-        """Get agents."""
-        request = {"method": "allAgents", "params": self._to_dict(params)}
+        """Get all agents."""
+        request = {"method": "all_agents", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         if isinstance(response, list):
             return [AM.Agent(**item) for item in response]
@@ -246,7 +246,7 @@ class InfoClient:
         self, params: AM.AccountInfoParams, signal: Optional[Any] = None
     ) -> AM.AccountInfoResponse:
         """Get account info."""
-        request = {"method": "accountInfo", "params": self._to_dict(params)}
+        request = {"method": "account_info", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         return AM.AccountInfoResponse(**response)
     
@@ -254,7 +254,7 @@ class InfoClient:
         self, params: AM.BrokersCheckParams, signal: Optional[Any] = None
     ) -> AM.BrokersCheckResponse:
         """Get brokers check."""
-        request = {"method": "brokersCheck", "params": self._to_dict(params)}
+        request = {"method": "brokers_check", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
         return AM.BrokersCheckResponse(**response)
         
@@ -274,7 +274,9 @@ class InfoClient:
         self, params: VM.SubVaultsParams, signal: Optional[Any] = None
     ) -> VM.SubVaultsResponse:
         """Get sub-vaults for a specific vault."""
-        request = {"method": "subVaults", "params": self._to_dict(params)}
+        params_dict = self._to_dict(params)
+        params_dict.pop("vaultAddress", None)
+        request = {"method": "sub_vaults", "params": params_dict}
         response = self.transport.request("info", request, signal)
         # API returns a list directly
         if isinstance(response, list):
@@ -285,7 +287,9 @@ class InfoClient:
         self, params: VM.VaultBalancesParams, signal: Optional[Any] = None
     ) -> VM.VaultBalancesResponse:
         """Get vault balances."""
-        request = {"method": "vaultBalance", "params": self._to_dict(params)}
+        params_dict = self._to_dict(params)
+        params_dict.pop("vaultAddress", None)
+        request = {"method": "vault_balance", "params": params_dict}
         response = self.transport.request("info", request, signal)
         # API returns single VaultBalance if user is passed, List[VaultBalance] otherwise
         if isinstance(response, list):

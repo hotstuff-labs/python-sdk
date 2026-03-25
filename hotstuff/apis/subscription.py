@@ -83,18 +83,15 @@ class SubscriptionClient:
         Subscribe to orderbook updates.
         
         Args:
-            params: Subscription parameters (instrument_id)
+            params: Subscription parameters (symbol)
             listener: Callback function for updates
             
         Returns:
             Subscription object with unsubscribe method
         """
-        # Convert to format expected by API (both instrumentId and symbol)
-        params_dict = self._to_dict(params)
-        params_dict["symbol"] = params_dict["instrument_id"]
-        return self.transport.subscribe("orderbook", params_dict, listener)
+        return self.transport.subscribe("orderbook", self._to_dict(params), listener)
     
-    def trade(
+    def trades(
         self,
         params: SM.TradeSubscriptionParams,
         listener: Callable
@@ -103,16 +100,14 @@ class SubscriptionClient:
         Subscribe to trades.
         
         Args:
-            params: Subscription parameters (instrument_id)
+            params: Subscription parameters (symbol)
             listener: Callback function for updates
             
         Returns:
             Subscription object with unsubscribe method
         """
-        # Convert to format expected by API (both instrumentId and symbol)
-        params_dict = self._to_dict(params)
-        params_dict["symbol"] = params_dict["instrument_id"]
-        return self.transport.subscribe("trade", params_dict, listener)
+        return self.transport.subscribe("trades", self._to_dict(params), listener)
+
     
     def index(
         self,
@@ -138,7 +133,7 @@ class SubscriptionClient:
         Subscribe to chart updates.
         
         Args:
-            params: Subscription parameters (symbol, chart_type, resolution)
+            params: Subscription parameters (instrument_id, chart_type, resolution)
             listener: Callback function for updates
             
         Returns:
@@ -148,13 +143,13 @@ class SubscriptionClient:
     
     # Account Subscriptions
     
-    def account_order_updates(
+    def orders(
         self,
-        params: SM.AccountOrderUpdatesParams,
+        params: SM.OrdersSubscriptionParams,
         listener: Callable
     ) -> Dict[str, Any]:
         """
-        Subscribe to order updates.
+        Subscribe to orders updates.
         
         Args:
             params: Subscription parameters (user address)
@@ -163,24 +158,7 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return self.transport.subscribe("accountOrderUpdates", self._to_dict(params), listener)
-    
-    def account_balance_updates(
-        self,
-        params: SM.AccountBalanceUpdatesParams,
-        listener: Callable
-    ) -> Dict[str, Any]:
-        """
-        Subscribe to balance updates.
-        
-        Args:
-            params: Subscription parameters (user address)
-            listener: Callback function for updates
-            
-        Returns:
-            Subscription object with unsubscribe method
-        """
-        return self.transport.subscribe("accountBalanceUpdates", self._to_dict(params), listener)
+        return self.transport.subscribe("orders", self._to_dict(params), listener)
     
     def positions(
         self,
@@ -197,7 +175,9 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return self.transport.subscribe("positions", self._to_dict(params), listener)
+        request = self._to_dict(params)
+        request["address"] = request["user"]
+        return self.transport.subscribe("position", request, listener)
     
     def fills(
         self,
@@ -231,7 +211,41 @@ class SubscriptionClient:
         Returns:
             Subscription object with unsubscribe method
         """
-        return self.transport.subscribe("accountSummary", self._to_dict(params), listener)
+        return self.transport.subscribe("account_summary", self._to_dict(params), listener)
+
+    def funding_payments(
+        self,
+        params: SM.FundingPaymentsSubscriptionParams,
+        listener: Callable
+    ) -> Dict[str, Any]:
+        """
+        Subscribe to funding payment updates.
+        
+        Args:
+            params: Subscription parameters (user address)
+            listener: Callback function for updates
+            
+        Returns:
+            Subscription object with unsubscribe method
+        """
+        return self.transport.subscribe("funding_payments", self._to_dict(params), listener)
+
+    def agents(
+        self,
+        params: SM.AgentsSubscriptionParams,
+        listener: Callable
+    ) -> Dict[str, Any]:
+        """
+        Subscribe to agent updates.
+        
+        Args:
+            params: Subscription parameters (user address)
+            listener: Callback function for updates
+            
+        Returns:
+            Subscription object with unsubscribe method
+        """
+        return self.transport.subscribe("agent", self._to_dict(params), listener)
     
     # Explorer Subscriptions
     
