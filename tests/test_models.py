@@ -171,3 +171,89 @@ class TestSubscriptionModels:
         
         params = AccountOrderUpdatesParams(user="0x1234567890123456789012345678901234567890")
         assert params.user.startswith("0x")
+
+
+class _StubTransport:
+    """Stub transport returning a fixed payload."""
+
+    def __init__(self, payload):
+        self.payload = payload
+
+    def request(self, endpoint, payload, signal=None):
+        return self.payload
+
+
+class TestResponsePassthrough:
+    """Test that InfoClient returns raw server payloads."""
+
+    def test_info_response_is_returned_as_is(self):
+        """InfoClient should return raw dict response without dataclass wrapping."""
+        from hotstuff import InfoClient, OracleParams
+
+        payload = {
+            "symbol": "BTC-PERP",
+            "index_price": "50000",
+            "ext_mark_price": "50010",
+            "updated_at": 1700000000,
+            "new_server_field": "keep-me",
+        }
+
+        client = InfoClient()
+        client.transport = _StubTransport(payload)
+
+        result = client.oracle(OracleParams(symbol="BTC-PERP"))
+        assert result == payload
+
+    def test_list_response_is_returned_as_is(self):
+        """InfoClient should return raw list responses as-is."""
+        from hotstuff import InfoClient, TickerParams
+
+        payload = [
+            {
+                "symbol": "BTC-PERP",
+                "mark_price": "50000",
+                "mid_price": "50001",
+                "index_price": "50002",
+                "best_bid_price": "49999",
+                "best_ask_price": "50003",
+                "best_bid_size": "1",
+                "best_ask_size": "2",
+                "volume_24h": "100",
+                "change_24h": "2",
+                "last_updated": 1700000000,
+                "extra_liquidity_hint": "server-value",
+            }
+        ]
+
+        client = InfoClient()
+        client.transport = _StubTransport(payload)
+
+        result = client.ticker(TickerParams(symbol="BTC-PERP"))
+        assert result == payload
+
+    def test_response_with_untyped_shape_is_returned_as_is(self):
+        """Untyped response payloads should be returned unchanged."""
+        from hotstuff import InfoClient, BlocksParams
+
+        payload = {
+            "data": [{"height": 1}],
+            "next_cursor": "cursor-1",
+        }
+
+        client = InfoClient()
+        client.transport = _StubTransport(payload)
+
+        result = client.blocks(BlocksParams(offset=0, limit=10))
+        assert result == payload
+
+    def test_websocket_result_ignores_unknown_fields(self):
+        """Websocket result models should ignore unknown fields without raising."""
+        from hotstuff.types import SubscribeResult, UnsubscribeResult
+
+        subscribe = SubscribeResult(status="subscribed", channels=["ticker"], request_id="abc-1")
+        unsubscribe = UnsubscribeResult(status="unsubscribed", channels=["ticker"], request_id="abc-2")
+
+        assert subscribe.status == "subscribed"
+        assert unsubscribe.status == "unsubscribed"
+        assert not hasattr(subscribe, "request_id")
+        assert not hasattr(unsubscribe, "request_id")

@@ -1,5 +1,5 @@
 """Info API client."""
-from typing import Optional, Any, List
+from typing import Optional, Any
 from dataclasses import asdict
 
 from hotstuff.methods.info import market as GM
@@ -33,71 +33,71 @@ class InfoClient:
     
     def oracle(
         self, params: GM.OracleParams, signal: Optional[Any] = None
-    ) -> GM.OracleResponse:
+    ) -> Any:
         """Get oracle prices."""
         request = {"method": "oracle", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return GM.OracleResponse(**response)
+        return response
     
     def supported_collateral(
         self, params: GM.SupportedCollateralParams, signal: Optional[Any] = None
-    ) -> List[GM.SupportedCollateral]:
+    ) -> Any:
         """Get supported collateral."""
         request = {"method": "supported_collateral", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return [GM.SupportedCollateral(**item) for item in response]
+        return response
     
     def instruments(
         self, params: GM.InstrumentsParams, signal: Optional[Any] = None
-    ) -> GM.InstrumentsResponse:
+    ) -> Any:
         """Get all instruments."""
         request = {"method": "instruments", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return GM.InstrumentsResponse(**response)
+        return response
     
     def ticker(
         self, params: GM.TickerParams, signal: Optional[Any] = None
-    ) -> List[GM.Ticker]:
+    ) -> Any:
         """Get ticker for a specific symbol."""
         request = {"method": "ticker", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return [GM.Ticker(**item) for item in response]
+        return response
     
     def orderbook(
         self, params: GM.OrderbookParams, signal: Optional[Any] = None
-    ) -> GM.OrderbookResponse:
+    ) -> Any:
         """Get orderbook with depth."""
         request = {"method": "orderbook", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return GM.OrderbookResponse(**response)
+        return response
     
     def trades(
         self, params: GM.TradesParams, signal: Optional[Any] = None
-    ) -> List[GM.Trade]:
+    ) -> Any:
         """Get recent trades."""
         request = {"method": "trades", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return [GM.Trade(**item) for item in response]
+        return response
     
     def mids(
         self, params: GM.MidsParams, signal: Optional[Any] = None
-    ) -> List[GM.Mid]:
+    ) -> Any:
         """Get mid prices for all instruments."""
         request = {"method": "mids", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return [GM.Mid(**item) for item in response]
+        return response
     
     def bbo(
         self, params: GM.BBOParams, signal: Optional[Any] = None
-    ) -> List[GM.BBO]:
+    ) -> Any:
         """Get best bid/offer."""
         request = {"method": "bbo", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return [GM.BBO(**item) for item in response]
+        return response
     
     def chart(
         self, params: GM.ChartParams, signal: Optional[Any] = None
-    ) -> List[GM.ChartPoint]:
+    ) -> Any:
         """Get chart data (candles or funding)."""
         # Convert from_ to "from" for API
         params_dict = self._to_dict(params)
@@ -105,19 +105,17 @@ class InfoClient:
             params_dict["from"] = params_dict.pop("from_")
         request = {"method": "chart", "params": params_dict}
         response = self.transport.request("info", request, signal)
-        return [GM.ChartPoint(**item) for item in response]
+        return response
     
     # Account Info Endpoints
     
     def open_orders(
         self, params: AM.OpenOrdersParams, signal: Optional[Any] = None
-    ) -> AM.OpenOrdersResponse:
+    ) -> Any:
         """Get open orders."""
         request = {"method": "open_orders", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        if isinstance(response, dict) and "data" in response:
-            response = {"orders": response["data"]}
-        return AM.OpenOrdersResponse(**response)
+        return response
     
     def positions(
         self, params: AM.PositionsParams, signal: Optional[Any] = None
@@ -130,215 +128,160 @@ class InfoClient:
     
     def account_summary(
         self, params: AM.AccountSummaryParams, signal: Optional[Any] = None
-    ) -> AM.AccountSummaryResponse:
+    ) -> Any:
         """Get account summary."""
         request = {"method": "account_summary", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return AM.AccountSummaryResponse(**response)
+        return response
     
     def referral_summary(
         self, params: AM.ReferralSummaryParams, signal: Optional[Any] = None
-    ) -> AM.ReferralSummaryResponse:
+    ) -> Any:
         """Get referral summary."""
         request = {"method": "referral_summary", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return AM.ReferralSummaryResponse(**response)
+        return response
     
     def user_fee_info(
         self, params: AM.UserFeeInfoParams, signal: Optional[Any] = None
-    ) -> AM.UserFeeInfoResponse:
+    ) -> Any:
         """Get user fee information."""
         request = {"method": "user_fees", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return AM.UserFeeInfoResponse(**response)
+        return response
     
     def account_history(
         self, params: AM.AccountHistoryParams, signal: Optional[Any] = None
-    ) -> AM.AccountHistoryResponse:
+    ) -> Any:
         """Get account history."""
         request = {"method": "account_history", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        # API returns a list directly
-        if isinstance(response, list):
-            return [AM.AccountHistory(**item) for item in response]
-        return []
+        return response
     
     def order_history(
         self, params: AM.OrderHistoryParams, signal: Optional[Any] = None
-    ) -> AM.OrderHistoryResponse:
+    ) -> Any:
         """Get order history."""
         request = {"method": "order_history", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        # API returns {"data": [...], "page", "limit", "total_count", ...}; map data -> orders
-        if isinstance(response, list):
-            response = {"orders": response}
-        elif isinstance(response, dict) and "data" in response and isinstance(response.get("data"), list):
-            response = {**response, "orders": response["data"]}
-            del response["data"]
-        return AM.OrderHistoryResponse(**response)
+        return response
     
     def fills(
         self, params: AM.FillsParams, signal: Optional[Any] = None
-    ) -> AM.FillsResponse:
+    ) -> Any:
         """Get trade history (fills)."""
         request = {"method": "fills", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        # API returns {"data": [...], "page", "limit", "total_count", ...}; map data -> entries
-        if isinstance(response, list):
-            response = {"entries": response}
-        elif isinstance(response, dict) and "data" in response and isinstance(response.get("data"), list):
-            response = {**response, "entries": response["data"]}
-            del response["data"]
-        return AM.FillsResponse(**response)
+        return response
     
     def funding_history(
         self, params: AM.FundingHistoryParams, signal: Optional[Any] = None
-    ) -> AM.FundingHistoryResponse:
+    ) -> Any:
         """Get funding history."""
         request = {"method": "funding_history", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        # API returns {"data": [...], "page", "limit", "total_count", ...}; map data -> entries
-        if isinstance(response, list):
-            response = {"entries": response}
-        elif isinstance(response, dict) and "data" in response and isinstance(response.get("data"), list):
-            response = {**response, "entries": response["data"]}
-            del response["data"]
-        return AM.FundingHistoryResponse(**response)
+        return response
     
     def transfer_history(
         self, params: AM.TransferHistoryParams, signal: Optional[Any] = None
-    ) -> AM.TransferHistoryResponse:
+    ) -> Any:
         """Get transfer history."""
         request = {"method": "transfer_history", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        # API returns a list directly; rename 'from' to 'from_address' (reserved keyword)
-        if isinstance(response, list):
-            return [AM.TransferHistory(
-                from_address=item.get("from", ""),
-                to=item.get("to", ""),
-                collateral_id=item.get("collateral_id", 0),
-                amount=item.get("amount", ""),
-                tx_hash=item.get("tx_hash", ""),
-                type=item.get("type", "deposit"),
-                timestamp=item.get("timestamp", ""),
-            ) for item in response]
-        return []
+        return response
     
     def instrument_leverage(
         self, params: AM.InstrumentLeverageParams, signal: Optional[Any] = None
-    ) -> AM.InstrumentLeverageResponse:
+    ) -> Any:
         """Get instrument leverage settings."""
         request = {"method": "instrument_leverage", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return AM.InstrumentLeverageResponse(**response)
+        return response
     
     def all_agents(
         self, params: AM.AgentsParams, signal: Optional[Any] = None
-    ) -> AM.AgentsResponse:
+    ) -> Any:
         """Get all agents."""
         request = {"method": "all_agents", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        if isinstance(response, list):
-            return [AM.Agent(**item) for item in response]
-        return AM.AgentsResponse(**response)
+        return response
     
     def account_info(
         self, params: AM.AccountInfoParams, signal: Optional[Any] = None
-    ) -> AM.AccountInfoResponse:
+    ) -> Any:
         """Get account info."""
         request = {"method": "account_info", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return AM.AccountInfoResponse(**response)
+        return response
     
     def brokers_check(
         self, params: AM.BrokersCheckParams, signal: Optional[Any] = None
-    ) -> AM.BrokersCheckResponse:
+    ) -> Any:
         """Get brokers check."""
         request = {"method": "brokers_check", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        return AM.BrokersCheckResponse(**response)
+        return response
         
     # Vault Info Endpoints
     
     def vaults(
         self, params: VM.VaultsParams, signal: Optional[Any] = None
-    ) -> VM.VaultsResponse:
+    ) -> Any:
         """Get all vaults."""
         request = {"method": "vaults", "params": self._to_dict(params)}
         response = self.transport.request("info", request, signal)
-        # Parse nested vault objects
-        vaults_list = response.get("vaults", []) if isinstance(response, dict) else []
-        return VM.VaultsResponse(vaults=[VM.Vault(**v) for v in vaults_list])
+        return response
     
     def sub_vaults(
         self, params: VM.SubVaultsParams, signal: Optional[Any] = None
-    ) -> VM.SubVaultsResponse:
+    ) -> Any:
         """Get sub-vaults for a specific vault."""
         params_dict = self._to_dict(params)
         params_dict.pop("vaultAddress", None)
         request = {"method": "sub_vaults", "params": params_dict}
         response = self.transport.request("info", request, signal)
-        # API returns a list directly
-        if isinstance(response, list):
-            return [VM.SubVault(**item) for item in response]
-        return []
+        return response
     
     def vault_balances(
         self, params: VM.VaultBalancesParams, signal: Optional[Any] = None
-    ) -> VM.VaultBalancesResponse:
+    ) -> Any:
         """Get vault balances."""
         params_dict = self._to_dict(params)
         params_dict.pop("vaultAddress", None)
         request = {"method": "vault_balance", "params": params_dict}
         response = self.transport.request("info", request, signal)
-        # API returns single VaultBalance if user is passed, List[VaultBalance] otherwise
-        if isinstance(response, list):
-            return [VM.VaultBalance(**item) for item in response]
-        elif isinstance(response, dict):
-            return VM.VaultBalance(**response)
-        return []
+        return response
     
     # Explorer Info Endpoints
     
     def blocks(
         self, params: EM.BlocksParams, signal: Optional[Any] = None
-    ) -> EM.BlocksResponse:
+    ) -> Any:
         """Get recent blocks."""
         request = {"method": "blocks", "params": self._to_dict(params)}
         response = self.transport.request("explorer", request, signal)
-        return EM.BlocksResponse(**response)
+        return response
     
     def block_details(
         self, params: EM.BlockDetailsParams, signal: Optional[Any] = None
-    ) -> EM.BlockDetailsResponse:
+    ) -> Any:
         """Get specific block details."""
         request = {"method": "block", "params": self._to_dict(params)}
         response = self.transport.request("explorer", request, signal)
-        # Parse nested transactions
-        transactions = [EM.BlockTransaction(**tx) for tx in response.get("transactions", [])]
-        return EM.BlockDetailsResponse(
-            block_height=response.get("block_height", 0),
-            block_hash=response.get("block_hash", ""),
-            parent_hash=response.get("parent_hash", ""),
-            change_log_hash=response.get("change_log_hash", ""),
-            timestamp=response.get("timestamp", 0),
-            tx_count=response.get("tx_count", 0),
-            created_at=response.get("created_at", 0),
-            transactions=transactions,
-        )
+        return response
     
     def transactions(
         self, params: EM.TransactionsParams, signal: Optional[Any] = None
-    ) -> EM.TransactionsResponse:
+    ) -> Any:
         """Get recent transactions."""
         request = {"method": "transactions", "params": self._to_dict(params)}
         response = self.transport.request("explorer", request, signal)
-        return EM.TransactionsResponse(**response)
+        return response
     
     def transaction_details(
         self, params: EM.TransactionDetailsParams, signal: Optional[Any] = None
-    ) -> EM.TransactionDetailsResponse:
+    ) -> Any:
         """Get specific transaction details."""
         request = {"method": "transaction", "params": self._to_dict(params)}
         response = self.transport.request("explorer", request, signal)
-        return EM.TransactionDetailsResponse(**response)
+        return response
