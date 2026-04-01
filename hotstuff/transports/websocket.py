@@ -2,7 +2,10 @@
 import json
 import time
 import threading
+import socket
+import ssl
 from typing import Optional, Dict, Any, Callable, List
+from urllib.parse import urlparse
 import websocket
 
 from hotstuff.types import (
@@ -252,13 +255,56 @@ class WebSocketTransport:
     def is_connected(self) -> bool:
         """Check if WebSocket is connected."""
         return self.ws is not None and self.ws.connected
+
+    def _create_ipv4_socket(self, url: str) -> Optional[socket.socket]:
+        """Create a connected IPv4 socket for websocket-client."""
+        parsed = urlparse(url)
+        hostname = parsed.hostname
+        if hostname is None:
+            return None
+
+        if parsed.port is not None:
+            port = parsed.port
+        elif parsed.scheme == "wss":
+            port = 443
+        else:
+            port = 80
+
+        addrinfo = socket.getaddrinfo(hostname, port, socket.AF_INET, socket.SOCK_STREAM)
+        last_error = None
+
+        for family, socktype, proto, _, sockaddr in addrinfo:
+            raw_socket = socket.socket(family, socktype, proto)
+            raw_socket.settimeout(self.timeout)
+
+            try:
+                raw_socket.connect(sockaddr)
+
+                if parsed.scheme == "wss":
+                    context = ssl.create_default_context()
+                    tls_socket = context.wrap_socket(raw_socket, server_hostname=hostname)
+                    tls_socket.settimeout(self.timeout)
+                    return tls_socket
+
+                return raw_socket
+            except Exception as exc:
+                last_error = exc
+                raw_socket.close()
+
+        if last_error is not None:
+            raise last_error
+        return None
     
     def connect(self):
         """Connect to WebSocket server."""
         url = self.server["testnet" if self.is_testnet else "mainnet"]
         
         try:
-            self.ws = websocket.create_connection(url, timeout=self.timeout)
+            ipv4_socket = self._create_ipv4_socket(url)
+            if ipv4_socket is not None:
+                self.ws = websocket.create_connection(url, timeout=self.timeout, socket=ipv4_socket)
+            else:
+                self.ws = websocket.create_connection(url, timeout=self.timeout)
             self.reconnect_attempts = 0
             self._running = True
             
@@ -293,6 +339,73 @@ class WebSocketTransport:
         
         self._send_jsonrpc_message(message)
         return PongResult(pong=True)
+
+    def _create_abort_error(self) -> Exception:
+        """Create a consistent abort error."""
+        return Exception("The operation was aborted")
+
+    def _is_signal_aborted(self, signal: Optional[Any]) -> bool:
+        """Check whether an optional signal-like object is aborted."""
+        if signal is None:
+            return False
+
+        # JS-like signal support
+        if getattr(signal, "aborted", False):
+            return True
+
+        # threading.Event support
+        is_set = getattr(signal, "is_set", None)
+        if callable(is_set):
+            try:
+                return bool(is_set())
+            except Exception:
+                return False
+
+        return False
+
+    def _normalize_request_result(self, result: Any) -> Any:
+        """Normalize websocket request payload shape to match HTTP transport."""
+        if isinstance(result, dict) and "data" in result and result.get("data") is not None:
+            return result["data"]
+        return result
+
+    def request(
+        self,
+        endpoint: str,
+        payload: Any,
+        signal: Optional[Any] = None
+    ) -> Any:
+        """
+        Send a request over websocket.
+
+        Args:
+            endpoint: Request type ('info', 'exchange', or 'explorer')
+            payload: Request payload
+            signal: Optional signal-like object with `aborted` or `is_set()`
+
+        Returns:
+            Request result payload
+        """
+        if self._is_signal_aborted(signal):
+            raise self._create_abort_error()
+
+        self.message_id_counter += 1
+        message = {
+            "jsonrpc": "2.0",
+            "method": WSMethod.POST,
+            "params": {
+                "type": "action" if endpoint == "exchange" else endpoint,
+                "payload": payload,
+            },
+            "id": str(self.message_id_counter),
+        }
+
+        result = self._send_jsonrpc_message(message)
+
+        if self._is_signal_aborted(signal):
+            raise self._create_abort_error()
+
+        return self._normalize_request_result(result)
     
     def subscribe(
         self,

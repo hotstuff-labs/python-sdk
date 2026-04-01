@@ -1,13 +1,13 @@
 """Example: Derivative balance transfer request."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_exchange_client
 from hotstuff import AccountDerivativeBalanceTransferRequestParams
 
 
 def main():
     """Main example function."""
     print("--------------------------------\nDerivative balance transfer request\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=True)
+    exchange, _, _, _ = setup_exchange_client()
         
     # Derivative balance transfer request
     derivative_balance_transfer_request_params = AccountDerivativeBalanceTransferRequestParams(

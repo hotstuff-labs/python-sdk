@@ -1,6 +1,6 @@
 """Example: Cancel by order id."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_trading_client
 from hotstuff import CancelByOidParams, UnitCancelByOrderId
 import time
 
@@ -8,7 +8,7 @@ import time
 def main():
     """Main example function."""
     print("--------------------------------\nCancel by order id\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_trading_client()
         
     # Cancel order by order id
     cancel_by_order_id_params = CancelByOidParams(

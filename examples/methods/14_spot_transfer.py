@@ -1,13 +1,13 @@
 """Example: Spot balance transfer request."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_exchange_client
 from hotstuff import AccountSpotBalanceTransferRequestParams
 
 
 def main():
     """Main example function."""
     print("--------------------------------\nSpot balance transfer request\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=True)
+    exchange, _, _, _ = setup_exchange_client()
         
     # Spot balance transfer request
     spot_balance_transfer_request_params = AccountSpotBalanceTransferRequestParams(

@@ -1,6 +1,6 @@
 """Example: Create referral code."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_exchange_client
 from hotstuff import CreateReferralCodeParams
 
 
@@ -8,7 +8,7 @@ from hotstuff import CreateReferralCodeParams
 def main():
     """Main example function."""
     print("--------------------------------\nCreate referral code\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_exchange_client()
     
     result = exchange.create_referral_code(CreateReferralCodeParams(code="1234567890"))
         

@@ -1,6 +1,6 @@
 """Example: Global subscriptions."""
-import example_utils
-
+from examples.utils.example_utils import setup_subscription_client
+from examples.utils.example_utils import build_listener, wait_for_updates, cleanup_subscriptions
 from hotstuff import (
     OrderbookSubscriptionParams,
     TickerSubscriptionParams,
@@ -10,14 +10,14 @@ from hotstuff import (
 def main():
     """Main example function."""
     print("--------------------------------\nGlobal subscriptions\n")
-    subscriptions, transport = example_utils.setup_subscription_client(is_testnet=False)
+    subscriptions, transport = setup_subscription_client()
     active_subscriptions = []
 
     try:
         print("Subscribing to ticker...")
         ticker_subscription = subscriptions.ticker(
             TickerSubscriptionParams(symbol="BTC-PERP"),
-            example_utils.build_listener("ticker"),
+            build_listener("ticker"),
         )
         active_subscriptions.append(ticker_subscription)
         print(f"Ticker subscription: {ticker_subscription}\n")
@@ -25,7 +25,7 @@ def main():
         print("Subscribing to orderbook...")
         orderbook_subscription = subscriptions.orderbook(
             OrderbookSubscriptionParams(symbol="BTC-PERP"),
-            example_utils.build_listener("orderbook"),
+            build_listener("orderbook"),
         )
         active_subscriptions.append(orderbook_subscription)
         print(f"Orderbook subscription: {orderbook_subscription}\n")
@@ -33,22 +33,22 @@ def main():
         print("Subscribing to trades...")
         trades_subscription = subscriptions.trades(
             TradeSubscriptionParams(symbol="BTC-PERP"),
-            example_utils.build_listener("trades"),
+            build_listener("trades"),
         )
         active_subscriptions.append(trades_subscription)
         print(f"Trades subscription: {trades_subscription}\n")
 
         print("Subscribing to index...")
-        index_subscription = subscriptions.index(example_utils.build_listener("index"))
+        index_subscription = subscriptions.index(build_listener("index"))
         active_subscriptions.append(index_subscription)
         print(f"Index subscription: {index_subscription}\n")
 
-        example_utils.wait_for_updates(seconds=20)
+        wait_for_updates(seconds=20)
     except KeyboardInterrupt:
         print("\nStopped by user.")
     finally:
         print("Cleaning up subscriptions...")
-        example_utils.cleanup_subscriptions(active_subscriptions, transport)
+        cleanup_subscriptions(active_subscriptions, transport)
 
 
 if __name__ == "__main__":
