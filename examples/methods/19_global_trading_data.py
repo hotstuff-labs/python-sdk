@@ -1,5 +1,5 @@
 """Example: Global trading data."""
-import example_utils
+from examples.utils.example_utils import setup_info_client
 import time
 from hotstuff import (
     OracleParams,
@@ -18,7 +18,7 @@ from hotstuff import (
 def main():
     """Main example function."""
     print("--------------------------------\nGlobal trading data\n")
-    info, _ = example_utils.setup_clients(is_testnet=True, main_account=False)
+    info, _, _, _ = setup_info_client()
     
    # Get oracle prices
     print("Fetching oracle prices...")

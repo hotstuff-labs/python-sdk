@@ -1,6 +1,6 @@
 """Example: Place orders."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_trading_client
 from hotstuff import PlaceOrderParams, UnitOrder, BrokerConfig
 import time
 
@@ -10,8 +10,8 @@ def place_order_payload():
         instrumentId=1,
         side="b",
         positionSide="BOTH",
-        price='100',
-        size="0.01",
+        price='68508',
+        size="0.001",
         tif="GTC",
         ro=False,
         po=False,
@@ -33,8 +33,8 @@ def place_order_payload_with_nonce():
         instrumentId=1,
         side="b",
         positionSide="BOTH",
-        price='100',
-        size="0.01",
+        price='68508',
+        size="0.001",
         tif="GTC",
         ro=False,
         po=False,
@@ -59,8 +59,8 @@ def place_order_payload_with_broker_config():
         instrumentId=1,
         side="b",
         positionSide="BOTH",
-        price='100',
-        size="0.01",
+        price='68508',
+        size="0.001",
         tif="GTC",
         ro=False,
         po=False,
@@ -81,7 +81,7 @@ def place_order_payload_with_broker_config():
 def main():
     """Main example function."""
     print("--------------------------------\nPlace orders\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_trading_client()
 
     # Place order with no broker config
     # place_order_params = place_order_payload()

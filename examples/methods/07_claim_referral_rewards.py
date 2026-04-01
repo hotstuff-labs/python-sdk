@@ -1,6 +1,6 @@
 """Example: Claim referral rewards."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_trading_client
 from hotstuff import ClaimReferralRewardsParams
 
 
@@ -8,7 +8,7 @@ from hotstuff import ClaimReferralRewardsParams
 def main():
     """Main example function."""
     print("--------------------------------\nClaim referral rewards\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_trading_client()
     
     result = exchange.claim_referral_rewards(ClaimReferralRewardsParams(collateralId=1, spot=True))
         

@@ -1,6 +1,6 @@
 """Example: Cancel all orders."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_trading_client
 from hotstuff import CancelAllParams
 import time
 
@@ -8,7 +8,7 @@ import time
 def main():
     """Main example function."""
     print("--------------------------------\nCancel all orders\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_trading_client()
         
     # Cancel order by client order id
     cancel_all_params = CancelAllParams(

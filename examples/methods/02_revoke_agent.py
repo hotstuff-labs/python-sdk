@@ -1,17 +1,18 @@
 """Example: Revoke Agent"""
 import json
-import example_utils
+from examples.utils.example_utils import setup_exchange_client
+from examples.utils.config import CONFIG
 from hotstuff import RevokeAgentParams
 
 
 def main():
     """Main example function."""
     print("--------------------------------\nRevoking Agent\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=True)
+    exchange, _, _, _ = setup_exchange_client()
     
     result = exchange.revoke_agent(
             RevokeAgentParams(
-                agent="0x0506BADFB56364cb90233350A8cAa3FF8ea0f470",
+                agent=CONFIG["AGENT_ADDRESS"],
                 forAccount="",
             )
         )

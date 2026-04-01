@@ -1,13 +1,13 @@
 """Example: Derivative withdraw request."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_exchange_client
 from hotstuff import AccountDerivativeWithdrawRequestParams
 
 
 def main():
     """Main example function."""
     print("--------------------------------\nDerivative withdraw request\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=True)
+    exchange, _, _, _ = setup_exchange_client()
         
     # Derivative withdraw request
     derivative_withdraw_request_params = AccountDerivativeWithdrawRequestParams(

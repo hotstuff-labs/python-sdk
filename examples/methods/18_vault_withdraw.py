@@ -1,17 +1,18 @@
 """Example: Vault withdraw request."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_exchange_client
+from examples.utils.config import CONFIG
 from hotstuff import RedeemFromVaultParams
 
 
 def main():
     """Main example function."""
     print("--------------------------------\nVault withdraw request\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_exchange_client()
         
     # Vault withdraw request
     redeem_from_vault_params = RedeemFromVaultParams(
-        vaultAddress="0xdE66c594AF8e4AD2C62DcFadCb6714F8b176A4ef",
+        vaultAddress=CONFIG["VAULT_ADDRESS"],
         shares="1",
     )
     result = exchange.redeem_from_vault(redeem_from_vault_params)

@@ -1,6 +1,6 @@
 """Example: Cancel by instrument."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_trading_client
 from hotstuff import CancelByInstrumentParams
 import time
 
@@ -8,7 +8,7 @@ import time
 def main():
     """Main example function."""
     print("--------------------------------\nCancel by instrument\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_trading_client()
         
     # Cancel order by instrument
     cancel_by_instrument_params = CancelByInstrumentParams(

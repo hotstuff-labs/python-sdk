@@ -1,6 +1,7 @@
 """Example: Update instrument leverage."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_trading_client
+from examples.utils.config import CONFIG
 from hotstuff import UpdatePerpInstrumentLeverageParams
 
 
@@ -8,7 +9,7 @@ from hotstuff import UpdatePerpInstrumentLeverageParams
 def main():
     """Main example function."""
     print("--------------------------------\nUpdating instrument leverage\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_trading_client()
     
     result = exchange.update_perp_instrument_leverage(UpdatePerpInstrumentLeverageParams(instrumentId=1, leverage="10"))
         

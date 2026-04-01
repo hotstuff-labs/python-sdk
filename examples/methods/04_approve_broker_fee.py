@@ -1,6 +1,7 @@
 """Example: Approve broker fee."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_exchange_client
+from examples.utils.config import ADDRESSES
 from hotstuff import ApproveBrokerFeeParams
 
 
@@ -8,9 +9,9 @@ from hotstuff import ApproveBrokerFeeParams
 def main():
     """Main example function."""
     print("--------------------------------\nApprove broker fee\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=True)
+    exchange, _, _, _ = setup_exchange_client()
     
-    result = exchange.approve_broker_fee(ApproveBrokerFeeParams(broker="0x3112e3CFb735f8137dC795ad31d2dA52681B5188", maxFeeRate="0.01"))
+    result = exchange.approve_broker_fee(ApproveBrokerFeeParams(broker=ADDRESSES["BROKER_ADDRESS"], maxFeeRate="0.01"))
         
     print(f"Broker fee approved successfully!\n\nResponse: {json.dumps(result, indent=2)}\n--------------------------------\n")
         

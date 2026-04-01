@@ -1,6 +1,6 @@
 """Example: Set referrer."""
 import json
-import example_utils
+from examples.utils.example_utils import setup_exchange_client
 from hotstuff import SetReferrerParams
 
 
@@ -8,7 +8,7 @@ from hotstuff import SetReferrerParams
 def main():
     """Main example function."""
     print("--------------------------------\nSet referrer\n")
-    _, exchange = example_utils.setup_clients(is_testnet=True, main_account=False)
+    exchange, _, _, _ = setup_exchange_client()
     
     result = exchange.set_referrer(SetReferrerParams(code="PY_SDK_DEMO_REFERRER"))
         
