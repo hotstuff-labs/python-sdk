@@ -2,7 +2,7 @@
 import json
 from examples.utils.example_utils import setup_exchange_client
 from hotstuff import AccountSpotBalanceTransferRequestParams
-
+from examples.utils.config import ADDRESSES
 
 def main():
     """Main example function."""
@@ -13,7 +13,7 @@ def main():
     spot_balance_transfer_request_params = AccountSpotBalanceTransferRequestParams(
         collateralId=1,
         amount="100.0",
-        destination="0x78Deb9225c3F28D12922913Fec978e4dC90E1aa4",
+        destination=ADDRESSES["DESTINATION_ADDRESS"],
     )
     result = exchange.account_spot_balance_transfer_request(spot_balance_transfer_request_params)
         

@@ -1,7 +1,6 @@
 """Example: Update instrument leverage."""
 import json
 from examples.utils.example_utils import setup_trading_client
-from examples.utils.config import CONFIG
 from hotstuff import UpdatePerpInstrumentLeverageParams
 
 

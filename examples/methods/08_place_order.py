@@ -3,6 +3,7 @@ import json
 from examples.utils.example_utils import setup_trading_client
 from hotstuff import PlaceOrderParams, UnitOrder, BrokerConfig
 import time
+from examples.utils.config import ADDRESSES
 
 def place_order_payload():
     """Generate place order payload."""
@@ -71,7 +72,7 @@ def place_order_payload_with_broker_config():
         # grouping='',
     )
 
-    broker_config = BrokerConfig(broker='', fee='0.001')
+    broker_config = BrokerConfig(broker=ADDRESSES["BROKER_ADDRESS"], fee='0.001')
 
     expires_after = int(time.time() * 1000) + 3600000
 

@@ -3,7 +3,7 @@ import time
 import json
 from hotstuff import AddAgentParams
 from examples.utils.example_utils import setup_exchange_client
-from examples.utils.config import CREDENTIALS, CONFIG
+from examples.utils.config import CREDENTIALS, CONFIG, ADDRESSES
 
 
 def main():
@@ -14,10 +14,10 @@ def main():
     result = exchange.add_agent(
             AddAgentParams(
                 agentName="python-sdk-demo-agent",
-                agent=CONFIG["AGENT_ADDRESS"],
+                agent=ADDRESSES["AGENT_ADDRESS"],
                 forAccount="",
                 agentPrivateKey=CREDENTIALS["AGENT_PRIVATE_KEY"],
-                signer=CONFIG["MAIN_ACCOUNT_ADDRESS"],
+                signer=ADDRESSES["MAIN_ACCOUNT_ADDRESS"],
                 validUntil=int(time.time() * 1000) + 3600000,
             )
         )

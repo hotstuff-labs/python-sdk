@@ -2,6 +2,7 @@
 import json
 from examples.utils.example_utils import setup_exchange_client
 from hotstuff import AccountDerivativeBalanceTransferRequestParams
+from examples.utils.config import ADDRESSES
 
 
 def main():
@@ -13,7 +14,7 @@ def main():
     derivative_balance_transfer_request_params = AccountDerivativeBalanceTransferRequestParams(
         collateralId=1,
         amount="100.0",
-        destination="0x78Deb9225c3F28D12922913Fec978e4dC90E1aa4",
+        destination=ADDRESSES["DESTINATION_ADDRESS"],
     )
     result = exchange.account_derivative_balance_transfer_request(derivative_balance_transfer_request_params)
         

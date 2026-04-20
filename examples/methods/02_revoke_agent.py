@@ -1,7 +1,7 @@
 """Example: Revoke Agent"""
 import json
 from examples.utils.example_utils import setup_exchange_client
-from examples.utils.config import CONFIG
+from examples.utils.config import ADDRESSES
 from hotstuff import RevokeAgentParams
 
 
@@ -12,7 +12,7 @@ def main():
     
     result = exchange.revoke_agent(
             RevokeAgentParams(
-                agent=CONFIG["AGENT_ADDRESS"],
+                agent=ADDRESSES["AGENT_ADDRESS"],
                 forAccount="",
             )
         )

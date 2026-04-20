@@ -8,8 +8,9 @@ from hotstuff import (
 )
 from examples.utils.example_utils import setup_subscription_client
 from examples.utils.example_utils import build_listener, wait_for_updates, cleanup_subscriptions
+from examples.utils.config import ADDRESSES
 
-DEFAULT_ACCOUNT_ADDRESS = "0x3212B884EED6D6CFe60742fA0c47326E48b45E25"
+DEFAULT_ACCOUNT_ADDRESS = ADDRESSES["MAIN_ACCOUNT_ADDRESS"]
 
 
 

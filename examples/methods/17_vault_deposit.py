@@ -1,7 +1,7 @@
 """Example: Vault deposit request."""
 import json
 from examples.utils.example_utils import setup_exchange_client
-from examples.utils.config import CONFIG
+from examples.utils.config import ADDRESSES
 from hotstuff import DepositToVaultParams
 
 
@@ -12,7 +12,7 @@ def main():
         
     # Vault deposit request
     deposit_to_vault_params = DepositToVaultParams(
-        vaultAddress=CONFIG["VAULT_ADDRESS"],
+        vaultAddress=ADDRESSES["VAULT_ADDRESS"],
         amount="100.0",
     )
     result = exchange.deposit_to_vault(deposit_to_vault_params)
