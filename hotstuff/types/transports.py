@@ -68,6 +68,11 @@ class Subscription:
     symbol: Optional[str]
     params: Dict[str, Any]
     timestamp: float
+    # Original client-side channel name as requested (e.g. "fills"). `channel`
+    # is overwritten with the server-echoed channel (e.g. "fills@0x..") and is
+    # used for notification matching, so the original is kept here to replay the
+    # subscription verbatim after a reconnect.
+    base_channel: Optional[str] = None
 
 
 class WSMethod:

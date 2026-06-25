@@ -1,6 +1,7 @@
 """WebSocket transport implementation."""
 import json
 import time
+import logging
 import threading
 import socket
 import ssl
@@ -21,6 +22,8 @@ from hotstuff.types import (
     PongResult,
 )
 from hotstuff.utils import ENDPOINTS_URLS
+
+logger = logging.getLogger(__name__)
 
 
 class WebSocketTransport:
@@ -101,7 +104,7 @@ class WebSocketTransport:
                 if self._running:
                     self.ping()
             except Exception as e:
-                print(f"Keep-alive error: {e}")
+                logger.warning("Keep-alive error: %s", e)
                 break
     
     def _handle_incoming_message(self, message: dict):
@@ -145,7 +148,7 @@ class WebSocketTransport:
                         try:
                             callback(subscription_data)
                         except Exception as e:
-                            print(f"Callback error: {e}")
+                            logger.error("Callback error: %s", e)
     
     def _receive_messages(self):
         """Receive messages from WebSocket."""
@@ -155,24 +158,59 @@ class WebSocketTransport:
                 if message:
                     data = json.loads(message)
                     self._handle_incoming_message(data)
+            except websocket.WebSocketTimeoutException:
+                # An idle recv timeout is normal for sparse channels (e.g. a
+                # maker's fills): the socket is healthy, just no frame arrived.
+                # Keep the connection and keep listening.
+                continue
             except websocket.WebSocketConnectionClosedException:
                 if self._running and self.reconnect_attempts < self.max_reconnect_attempts:
                     self._reconnect()
                 break
             except json.JSONDecodeError as e:
-                print(f"Failed to parse message: {e}")
+                logger.warning("Failed to parse message: %s", e)
             except Exception as e:
-                print(f"Receive error: {e}")
+                logger.error("Receive error: %s", e)
                 if self._running and self.reconnect_attempts < self.max_reconnect_attempts:
                     self._reconnect()
                 break
     
     def _reconnect(self):
-        """Reconnect to WebSocket."""
+        """Reconnect to WebSocket and replay subscriptions."""
         self._cleanup()
         time.sleep(self.reconnect_delay * self.reconnect_attempts)
         self.reconnect_attempts += 1
         self.connect()
+        self._resubscribe_all()
+
+    def _resubscribe_all(self):
+        """Replay all known subscriptions onto a freshly reconnected socket.
+
+        `_cleanup` intentionally keeps `self.subscriptions` / callbacks, so the
+        local registry survives a reconnect. The server, however, has no record
+        of the old subscriptions after the socket is replaced, so we must
+        re-send each subscribe request and refresh the server-echoed channel
+        used for notification matching.
+        """
+        if not self.subscriptions:
+            return
+
+        for sub_id, subscription in list(self.subscriptions.items()):
+            base = subscription.base_channel or subscription.channel
+            try:
+                params = self._format_subscription_params(base, subscription.params or {})
+                result = self._subscribe_to_channels(params)
+                if result.status == "subscribed" and result.channels:
+                    subscription.channel = result.channels[0]
+                else:
+                    logger.warning(
+                        "Resubscribe rejected for %s (%s): %s",
+                        sub_id,
+                        base,
+                        result.error or result.status,
+                    )
+            except Exception as e:
+                logger.error("Failed to resubscribe %s (%s): %s", sub_id, base, e)
     
     def _send_jsonrpc_message(self, message: dict) -> Any:
         """Send a JSON-RPC message and wait for response."""
@@ -305,6 +343,15 @@ class WebSocketTransport:
                 self.ws = websocket.create_connection(url, timeout=self.timeout, socket=ipv4_socket)
             else:
                 self.ws = websocket.create_connection(url, timeout=self.timeout)
+
+            # Enable TCP keepalive so a dead peer is detected even on idle
+            # channels, independent of the application-level ping loop.
+            try:
+                if self.ws.sock is not None:
+                    self.ws.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            except (OSError, AttributeError) as e:
+                logger.debug("Unable to enable TCP keepalive: %s", e)
+
             self.reconnect_attempts = 0
             self._running = True
             
@@ -434,7 +481,8 @@ class WebSocketTransport:
             channel=channel,
             symbol=payload.get("instrumentId") or payload.get("symbol"),
             params=payload,
-            timestamp=time.time()
+            timestamp=time.time(),
+            base_channel=channel,
         )
         
         self.subscription_callbacks[subscription_id] = listener
@@ -478,7 +526,7 @@ class WebSocketTransport:
             self.subscription_callbacks.pop(subscription_id, None)
         
         except Exception as e:
-            print(f"Failed to unsubscribe: {e}")
+            logger.error("Failed to unsubscribe: %s", e)
             self.subscriptions.pop(subscription_id, None)
             self.subscription_callbacks.pop(subscription_id, None)
             raise e
